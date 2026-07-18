@@ -1,3 +1,4 @@
+#include "lexer.hpp"
 #include <print>
 
 int main(int argc, char* argv[])
@@ -9,8 +10,9 @@ int main(int argc, char* argv[])
     }
     for (int i = 1; i < argc; i++)
     {
-        std::println("Argument {}: {}", i, argv[i]);
+        Lexer lexer;
+        lexer.lexize(argv[i]);
     }
-    // std::println("File name: {}", argv[1]);
+    
     return 0;
 }

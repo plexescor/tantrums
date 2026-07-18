@@ -10,6 +10,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_executable(tantrums
     src/main.cpp
+    src/lexer/lexer.cpp
 )
 
 target_include_directories(tantrums 
