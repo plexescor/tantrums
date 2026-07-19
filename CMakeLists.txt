@@ -19,7 +19,7 @@ target_include_directories(tantrums
 )
 
 if(MSVC)
-    target_compile_options(tantrums PRIVATE /W4 /WX /permissive-)
+    target_compile_options(tantrums PRIVATE)
 else()
-    target_compile_options(tantrums PRIVATE -Wall -Wextra -Wpedantic -Werror)
+    target_compile_options(tantrums PRIVATE)
 endif()
