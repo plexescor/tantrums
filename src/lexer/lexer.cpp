@@ -88,7 +88,7 @@ void Lexer::lexize(const std::filesystem::path& filePath)
                 TOKEN_TYPE tokenType = getTokenType(word);
                 Token token = { tokenType, word, currentLine };
                 tokens.push_back(token);
-                // std::println("keyword: {}  at: {}", word, currentLine);
+                std::println("keyword: {}  at: {}", word, currentLine);
                 word.clear();
 
                 if (character == '{' 
@@ -103,7 +103,7 @@ void Lexer::lexize(const std::filesystem::path& filePath)
                     TOKEN_TYPE tokenType = getTokenType(delimiter);
                     Token token = { tokenType, delimiter, currentLine };
                     tokens.push_back(token);
-                    // std::println("delimiter: {}  at: {}", delimiter, currentLine);
+                    std::println("[STRICT] delimiter: {}  at: {}", delimiter, currentLine);
                 }
             }
             else
@@ -119,12 +119,13 @@ void Lexer::lexize(const std::filesystem::path& filePath)
                     // std::println("delimiter: {}", delimiter);
                     continue;
                 }
+                if (character == ' ') continue;
                 std::string delimiter = "";
                 delimiter.push_back(character);
                 TOKEN_TYPE tokenType = getTokenType(delimiter);
                 Token token = { tokenType, delimiter, currentLine };
                 tokens.push_back(token);
-                // std::println("delimiter: {}  at: {}", delimiter, currentLine);
+                std::println("delimiter: {}  at: {}", delimiter, currentLine);
             }
         }
         else if (character == '\n')
@@ -138,13 +139,13 @@ void Lexer::lexize(const std::filesystem::path& filePath)
         TOKEN_TYPE tokenType = getTokenType(word);
         Token token = { tokenType, word, currentLine };
         tokens.push_back(token);
-        // std::println("keyword (EOF trailing): {}  at: {}", word, currentLine);
+        std::println("keyword (EOF trailing): {}  at: {}", word, currentLine);
         word.clear(); 
     }
 
     Token token =  { TOKEN_TYPE::TOKEN_END_OF_FILE, "", currentLine };
     tokens.push_back(token);
-    // std::println("Reached End-Of-File successfully.");
+    std::println("Reached End-Of-File successfully.");
 
 }
 
