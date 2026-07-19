@@ -45,6 +45,8 @@ class Lexer
 
     private:
         bool isQuoteOpen = false;
+        bool isCommentFirstSlash = false;
+        bool toSkipLine = false;
         char lastChar;
         uint64_t currentLine = 1;
         std::vector<Token> tokens;

@@ -70,6 +70,16 @@ void Lexer::lexize(const std::filesystem::path& filePath)
                     continue;
                 }
             }
+            if (toSkipLine)
+            {
+                if (character == '\n')
+                {
+                    toSkipLine = false;
+                    currentLine++;
+                }
+                continue;
+            }
+
             word += character;
         }
         else if (character == '{' 
@@ -81,10 +91,34 @@ void Lexer::lexize(const std::filesystem::path& filePath)
                 || character == '\"'
                 || character == '['
                 || character == ']'
-                || character == ';')
+                || character == ';'
+                || character == '/')
         {
-            if (!word.empty())
+            if (toSkipLine)
             {
+                if (character == '\n')
+                {
+                    toSkipLine = false;
+                }
+                continue;
+            }
+            else if (character == '/')
+            {
+                if (isCommentFirstSlash)
+                {
+                    toSkipLine = true;
+                    isCommentFirstSlash = false;
+                    continue;
+                }
+                else
+                {
+                    isCommentFirstSlash = false;
+                }
+                isCommentFirstSlash = true;
+            }
+            else if (!word.empty())
+            {
+                isCommentFirstSlash = false;
                 TOKEN_TYPE tokenType = getTokenType(word);
                 Token token = { tokenType, word, currentLine };
                 tokens.push_back(token);
@@ -108,6 +142,7 @@ void Lexer::lexize(const std::filesystem::path& filePath)
             }
             else
             {
+                isCommentFirstSlash = false;
                 if (character == '\"')
                 {
                     isQuoteOpen = !isQuoteOpen;
@@ -131,6 +166,7 @@ void Lexer::lexize(const std::filesystem::path& filePath)
         else if (character == '\n')
         {
             currentLine++;
+            toSkipLine = false;
         }
     }
 
