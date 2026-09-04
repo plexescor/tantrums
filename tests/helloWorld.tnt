@@ -1,52 +1,15 @@
-void main(auto argc, auto argv)
-{
-    int8 x
-    int16 x
-    int32 x
-    int64 x
-    int128 x
-    uint8 y
-    uint16 y
-    uint32 y
-    uint64
-    uint128
-    bool 
-    true
-    false
-    100
-    69.69
-    "Sexy boy"
-    ==
-    =
-    ;
-    {}[]()
-    -
-    *
-    +
-    !
-    !=
-    *=
-    +=
-    -=
-    /=
-    &
-    ++
-    --
-    -
-    /
-    // SEXY BOY COMMENT FUCK YOU, /* */is not implemented tho
-    ??
-    ?
-    >
-    <
-    >=
-    <=
-    <-->
-    ->
-    !->
-    <~~
-    a++
-    if (j) { doShit(); }
-    else if (j) { doShit2(); }
-    else {"<~~;";}
+// Test 1: Comment at absolute start of file
+// Test 2: Identifiers starting with or containing underscores
+int32 _my_var = 10;
+bool _flag = true;
+
+// Test 3: Multi-char operators directly glued to identifiers
+if(a->b==c) {
+    _my_var++;
 }
+
+// Test 4: String with escaped internal quotes
+string msg = "Hello \"World\"!";
+
+// Test 5: Malformed string ending at EOF (Unterminated)
+string broken = "This string never ends

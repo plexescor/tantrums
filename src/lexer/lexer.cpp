@@ -52,7 +52,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                 // {
                 //     // Ignore whitespace
                 // }
-                else if (std::isalpha(currentChar))
+                else if (std::isalpha(currentChar) || currentChar == '_')
                 {
                     currentState = LexerState::LEXER_STATE_WORD;
                     consumeChar = false; // Don't consume the current character, as it is part of the identifier
@@ -240,7 +240,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                 // The 1st double quote has already been consumed, so we can just keep reading until we find the closing double quote
                 // if next char is a quote, then we have reached the end of the string
                 char nextChar = (totalLengthRead + 1 < fileLength) ? fileContent[totalLengthRead + 1] : '\0';
-                if (nextChar == '"')
+                if (nextChar == '"' && currentChar != '\\')
                 {
                     word += currentChar; // Add the current character to the string
                     // End of string
@@ -256,7 +256,8 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                 }
                 else
                 {
-                    word += currentChar;
+                    if (currentChar !='\\')
+                        word += currentChar;
                 }
 
                 break;
@@ -264,11 +265,11 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
 
             case LexerState::LEXER_STATE_COMMENT:
             {
-                std::string comment = "";
+                std::string comment = std::string(1, currentChar); // Start the comment with the first '/' character
                 //skip until next line char
                 while (totalLengthRead < fileLength && fileContent[totalLengthRead] != '\n')
                 {
-                    comment += fileContent[totalLengthRead - 1];
+                    comment += fileContent[totalLengthRead];
                     totalLengthRead++;
                 }
                 std::println("Comment Detected, isolated capture case: '{}', Line: {}", comment, currentLine);
