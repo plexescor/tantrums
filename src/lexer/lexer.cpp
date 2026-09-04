@@ -161,6 +161,34 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                     {
                         tokens.push_back(Token(TokenType::TOKEN_KEYWORD, word, currentLine));
                     }
+                    else if (word == "if")
+                    {
+                        tokens.push_back(Token(TokenType::TOKEN_IF, word, currentLine));
+                    }
+                    else if (word == "else")
+                    {
+                        tokens.push_back(Token(TokenType::TOKEN_ELSE, word, currentLine));
+                    }
+                    else if (word == "for")
+                    {
+                        tokens.push_back(Token(TokenType::TOKEN_FOR, word, currentLine));
+                    }
+                    else if (word == "while")
+                    {
+                        tokens.push_back(Token(TokenType::TOKEN_WHILE, word, currentLine));
+                    }
+                    else if (word == "return")
+                    {
+                        tokens.push_back(Token(TokenType::TOKEN_RETURN, word, currentLine));
+                    }
+                    else if (word == "break")
+                    {
+                        tokens.push_back(Token(TokenType::TOKEN_BREAK, word, currentLine));
+                    }
+                    else if (word == "continue")
+                    {
+                        tokens.push_back(Token(TokenType::TOKEN_CONTINUE, word, currentLine));
+                    }
                     else
                     {
                         tokens.push_back(Token(TokenType::TOKEN_IDENTIFIER, word, currentLine));

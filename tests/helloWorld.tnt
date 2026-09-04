@@ -46,4 +46,7 @@ void main(auto argc, auto argv)
     !->
     <~~
     a++
+    if (j) { doShit(); }
+    else if (j) { doShit2(); }
+    else {"<~~;";}
 }
