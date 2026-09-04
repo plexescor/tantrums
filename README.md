@@ -48,6 +48,8 @@ Nothing
 - `[ ]` **Parser** — recursive descent, build an AST
 - `[ ]` **Type checker** — resolve and validate types in static mode
 - `[ ]` **LLVM IR codegen** — walk the AST, emit LLVM IR, run the optimizer
+- `[ ]` **Module System** — Make a module / impl system
+- `[ ]` **FFI** — call C libs from tantrums
 - `[ ]` **Basic standard library** — I/O, strings, basic collections
 - `[ ]` **Port first real feature** from my target application
 
