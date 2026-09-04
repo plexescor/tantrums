@@ -33,19 +33,18 @@ The long-term goal is to make Tantrums capable enough to port a real application
 - **Statically typed** as the primary mode — the compiler knows every type at compile time
 - **Native LLVM types** in static mode — no NaN-boxing, no unified value wrapper, no overhead
 - **Small implementation** — the compiler source should be readable in one sitting
-- **`.42AHH` source files** — kept from the predecessor, personal tradition, not changing it
 
 ---
 
 ## Current status
 
-Very early. The lexer class exists and reads a file path. That's it.
+Nothing
 
 ---
 
 ## Roadmap
 
-- `[ ]` **Lexer** — tokenize source text into a token stream
+- `[-]` **Lexer** — tokenize source text into a token stream
 - `[ ]` **Parser** — recursive descent, build an AST
 - `[ ]` **Type checker** — resolve and validate types in static mode
 - `[ ]` **LLVM IR codegen** — walk the AST, emit LLVM IR, run the optimizer

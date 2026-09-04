@@ -1,0 +1,49 @@
+void main(auto argc, auto argv)
+{
+    int8 x
+    int16 x
+    int32 x
+    int64 x
+    int128 x
+    uint8 y
+    uint16 y
+    uint32 y
+    uint64
+    uint128
+    bool 
+    true
+    false
+    100
+    69.69
+    "Sexy boy"
+    ==
+    =
+    ;
+    {}[]()
+    -
+    *
+    +
+    !
+    !=
+    *=
+    +=
+    -=
+    /=
+    &
+    ++
+    --
+    -
+    /
+    // SEXY BOY COMMENT FUCK YOU, /* */is not implemented tho
+    ??
+    ?
+    >
+    <
+    >=
+    <=
+    <-->
+    ->
+    !->
+    <~~
+    a++
+}

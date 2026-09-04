@@ -1,53 +1,31 @@
 #pragma once
 #include <filesystem>
-#include <string>
 #include <vector>
 
-enum class TOKEN_TYPE {
-    TOKEN_IDENTIFIER,
-    TOKEN_INT,
-    TOKEN_FLOAT,
-    TOKEN_STRING_LITERAL,
-    TOKEN_DOUBLE_QUOTE,
-    TOKEN_SINGLE_QUOTE,
-    TOKEN_LEFT_PARANTHESIS,
-    TOKEN_RIGHT_PARANTHESIS,
-    TOKEN_LEFT_CURLY_BRACES,
-    TOKEN_RIGHT_CURLY_BRACES,
-    TOKEN_TANTRUMS,
-    TOKEN_VOID,
-    TOKEN_SEMI_COLON,
-    TOKEN_RETURN,
-    TOKEN_PRINT,
-    TOKEN_UNKNOWN,
-    TOKEN_END_OF_FILE
-};
+#include "token.hpp"
 
-struct Token {
-    TOKEN_TYPE type;
-    std::string value;
-    uint64_t lineNumber;
+enum class LexerState
+{
+    LEXER_STATE_DEFAULT,
+    LEXER_STATE_WORD,
+    LEXER_STATE_NUMBER,
+    LEXER_STATE_STRING,
+    LEXER_STATE_COMMENT,
+    LEXER_STATE_OPERATOR,
+    LEXER_STATE_OTHER,
 };
 
 class Lexer
 {
     public:
-        Lexer();
-        ~Lexer();
-
-    public:
-        void lexize(const std::filesystem::path& filePath); //or lexise?
-        std::vector<Token> getTokens();
-    
-    private:
-        // Token getNextToken(std::string& line);
-        TOKEN_TYPE getTokenType(std::string& word);
+        bool lexize(const std::filesystem::path& filePath);
 
     private:
-        bool isQuoteOpen = false;
-        bool isCommentFirstSlash = false;
-        bool toSkipLine = false;
-        char lastChar;
-        uint64_t currentLine = 1;
         std::vector<Token> tokens;
+        uint64_t currentLine = 1;
+        uint64_t currentColumn = 1;
+        uint64_t totalLengthRead = 0;
+        size_t fileLength = 0;
+        LexerState currentState = LexerState::LEXER_STATE_DEFAULT;
+
 };

@@ -5,13 +5,16 @@ int main(int argc, char* argv[])
 {
     if (argc < 2) 
     {
-        std::println("Usage: tantrums <fileName.42AHH>");
+        std::println("Usage: tantrums <fileName.tnt>");
         return 1;
     }
+    Lexer lexer;
     for (int i = 1; i < argc; i++)
     {
-        Lexer lexer;
-        lexer.lexize(argv[i]);
+        if (!lexer.lexize(argv[i]))
+        {
+            return 1;
+        }
     }
     
     return 0;
