@@ -5,16 +5,22 @@
 #include <vector>
 #include <string>
 #include <cctype>
+#include <cstdint>
 //NEW PARSER
 #include "lexer.hpp"
 #include "token.hpp"
+
+std::vector<Token> Lexer::getTokens() const
+{
+    return tokens;
+}
 
 bool Lexer::lexize(const std::filesystem::path& filePath)
 {
     std::ifstream file(filePath);
     if (!file.is_open())
     {
-        std::println("Error: Could not open file '{}'", filePath.string());
+      //std::println("Error: Could not open file '{}'", filePath.string());
         return false;
     }
 
@@ -107,59 +113,79 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                     // End of identifier
                     if (word == "bool")
                     {
-                        tokens.push_back(Token(TokenType::TOKEN_KEYWORD, word, currentLine));
+                        tokens.push_back(Token(TokenType::TOKEN_BOOL, word, currentLine));
                     }
-                    else if (word == "true" || word == "false")
+                    else if (word == "true")
                     {
-                        tokens.push_back(Token(TokenType::TOKEN_BOOL_LITERAL, word, currentLine));
+                        tokens.push_back(Token(TokenType::TOKEN_TRUE, word, currentLine));
+                    }
+                    else if (word == "false")
+                    {
+                        tokens.push_back(Token(TokenType::TOKEN_FALSE, word, currentLine));
+                    }
+                    else if (word == "return")
+                    {
+                        tokens.push_back(Token(TokenType::TOKEN_RETURN, word, currentLine));
+                    }
+                    else if (word == "pure")
+                    {
+                        tokens.push_back(Token(TokenType::TOKEN_PURE, word, currentLine));
+                    }
+                    else if (word == "heap")
+                    {
+                        tokens.push_back(Token(TokenType::TOKEN_HEAP, word, currentLine));
+                    }
+                    else if (word == "use")
+                    {
+                        tokens.push_back(Token(TokenType::TOKEN_USE, word, currentLine));
                     }
                     else if (word == "int8")
                     {
-                        tokens.push_back(Token(TokenType::TOKEN_KEYWORD, word, currentLine));
+                        tokens.push_back(Token(TokenType::TOKEN_INT8, word, currentLine));
                     }
                     else if (word == "int16")
                     {
-                        tokens.push_back(Token(TokenType::TOKEN_KEYWORD, word, currentLine));
+                        tokens.push_back(Token(TokenType::TOKEN_INT16, word, currentLine));
                     }
                     else if (word == "int32")
                     {
-                        tokens.push_back(Token(TokenType::TOKEN_KEYWORD, word, currentLine));
+                        tokens.push_back(Token(TokenType::TOKEN_INT32, word, currentLine));
                     }
                     else if (word == "int64")
                     {
-                        tokens.push_back(Token(TokenType::TOKEN_KEYWORD, word, currentLine));
+                        tokens.push_back(Token(TokenType::TOKEN_INT64, word, currentLine));
                     }
                     else if (word == "int128")
                     {
-                        tokens.push_back(Token(TokenType::TOKEN_KEYWORD, word, currentLine));
+                        tokens.push_back(Token(TokenType::TOKEN_INT128, word, currentLine));
                     }
                     else if (word == "uint8")
                     {
-                        tokens.push_back(Token(TokenType::TOKEN_KEYWORD, word, currentLine));
+                        tokens.push_back(Token(TokenType::TOKEN_UINT8, word, currentLine));
                     }
                     else if (word == "uint16")
                     {
-                        tokens.push_back(Token(TokenType::TOKEN_KEYWORD, word, currentLine));
+                        tokens.push_back(Token(TokenType::TOKEN_UINT16, word, currentLine));
                     }
                     else if (word == "uint32")
                     {
-                        tokens.push_back(Token(TokenType::TOKEN_KEYWORD, word, currentLine));
+                        tokens.push_back(Token(TokenType::TOKEN_UINT32, word, currentLine));
                     }
                     else if (word == "uint64")
                     {
-                        tokens.push_back(Token(TokenType::TOKEN_KEYWORD, word, currentLine));
+                        tokens.push_back(Token(TokenType::TOKEN_UINT64, word, currentLine));
                     }
                     else if (word == "uint128")
                     {
-                        tokens.push_back(Token(TokenType::TOKEN_KEYWORD, word, currentLine));
+                        tokens.push_back(Token(TokenType::TOKEN_UINT128, word, currentLine));
                     }
                     else if (word == "float32")
                     {
-                        tokens.push_back(Token(TokenType::TOKEN_KEYWORD, word, currentLine));
+                        tokens.push_back(Token(TokenType::TOKEN_FLOAT32, word, currentLine));
                     }
                     else if (word == "float64")
                     {
-                        tokens.push_back(Token(TokenType::TOKEN_KEYWORD, word, currentLine));
+                        tokens.push_back(Token(TokenType::TOKEN_FLOAT64, word, currentLine));
                     }
                     else if (word == "if")
                     {
@@ -195,7 +221,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                     }
 
                     // tokens.push_back(Token(TokenType::TOKEN_IDENTIFIER, word, currentLine));
-                    std::println("Keyword/identifier: '{}', Line: {}", word, currentLine);
+                  //std::println("Keyword/identifier: '{}', Line: {}", word, currentLine);
                     word.clear();
 
                     currentState = LexerState::LEXER_STATE_DEFAULT;
@@ -222,7 +248,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                     {
                         tokens.push_back(Token(TokenType::TOKEN_INTEGER_LITERAL, word, currentLine));
                     }
-                    std::println("Int/Float: '{}', Line: {}", word, currentLine);
+                  //std::println("Int/Float: '{}', Line: {}", word, currentLine);
                     word.clear();
 
                     currentState = LexerState::LEXER_STATE_DEFAULT;
@@ -241,7 +267,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                 {
                     // closing quote hit, emit whatever is in word (even if empty)
                     tokens.push_back(Token(TokenType::TOKEN_STRING_LITERAL, word, currentLine));
-                    std::println("String: '{}', Line: {}", word, currentLine);
+                  //std::println("String: '{}', Line: {}", word, currentLine);
                     word.clear();
                     currentState = LexerState::LEXER_STATE_DEFAULT;
                 }
@@ -275,7 +301,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                     comment += fileContent[totalLengthRead];
                     totalLengthRead++;
                 }
-                std::println("Comment Detected, isolated capture case: '{}', Line: {}", comment, currentLine);
+              //std::println("Comment Detected, isolated capture case: '{}', Line: {}", comment, currentLine);
 
                 currentLine++;
                 currentColumn = 1;
@@ -294,7 +320,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                         word += currentChar;
                         word += '=';
                         tokens.push_back(Token(TokenType::TOKEN_COMPOUND_ADD_OPERATOR, word, currentLine));
-                        std::println("Compound Add: '{}', Line: {}", word, currentLine);
+                      //std::println("Compound Add: '{}', Line: {}", word, currentLine);
                         word.clear();
                         totalLengthRead++; // Consume the next character as well
                     }
@@ -303,7 +329,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                         word += currentChar;
                         word += '+';
                         tokens.push_back(Token(TokenType::TOKEN_INCREMENT_OPERATOR, word, currentLine));
-                        std::println("Increment: '{}', Line: {}", word, currentLine);
+                      //std::println("Increment: '{}', Line: {}", word, currentLine);
                         word.clear();
                         totalLengthRead++; // Consume the next character as well
                     }
@@ -311,7 +337,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                     {
                         word += currentChar;
                         tokens.push_back(Token(TokenType::TOKEN_PLUS_OPERATOR, word, currentLine));
-                        std::println("Add: '{}', Line: {}", word, currentLine);
+                      //std::println("Add: '{}', Line: {}", word, currentLine);
                         word.clear();
                     }
                 }
@@ -322,7 +348,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                         word += currentChar;
                         word += '=';
                         tokens.push_back(Token(TokenType::TOKEN_COMPOUND_SUBTRACT_OPERATOR, word, currentLine));
-                        std::println("Compound Subtract: '{}', Line: {}", word, currentLine);
+                      //std::println("Compound Subtract: '{}', Line: {}", word, currentLine);
                         word.clear();
                         totalLengthRead++; // Consume the next character as well
                     }
@@ -331,7 +357,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                         word += currentChar;
                         word += '-';
                         tokens.push_back(Token(TokenType::TOKEN_DECREMENT_OPERATOR, word, currentLine));
-                        std::println("Decrement: '{}', Line: {}", word, currentLine);
+                      //std::println("Decrement: '{}', Line: {}", word, currentLine);
                         word.clear();
                         totalLengthRead++; // Consume the next character as well
                     }
@@ -340,7 +366,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                         word += currentChar;
                         word += '>';
                         tokens.push_back(Token(TokenType::TOKEN_METHOD_MEMBER_ACCESS_OPERATOR, word, currentLine));
-                        std::println("Method/Member Access: '{}', Line: {}", word, currentLine);
+                      //std::println("Method/Member Access: '{}', Line: {}", word, currentLine);
                         word.clear();
                         totalLengthRead++; // Consume the next character as well
                     }
@@ -348,7 +374,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                     {
                         word += currentChar;
                         tokens.push_back(Token(TokenType::TOKEN_MINUS_OPERATOR, word, currentLine));
-                        std::println("Subtract: '{}', Line: {}", word, currentLine);
+                      //std::println("Subtract: '{}', Line: {}", word, currentLine);
                         word.clear();
                     }
                 }
@@ -359,7 +385,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                         word += currentChar;
                         word += '=';
                         tokens.push_back(Token(TokenType::TOKEN_COMPOUND_MULTIPLY_OPERATOR, word, currentLine));
-                        std::println("Compound Multiply: '{}', Line: {}", word, currentLine);
+                      //std::println("Compound Multiply: '{}', Line: {}", word, currentLine);
                         word.clear();
                         totalLengthRead++; // Consume the next character as well
                     }
@@ -367,7 +393,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                     {
                         word += currentChar;
                         tokens.push_back(Token(TokenType::TOKEN_STAR_OPERATOR, word, currentLine));
-                        std::println("Star: '{}', Line: {}", word, currentLine);
+                      //std::println("Star: '{}', Line: {}", word, currentLine);
                         word.clear();
                     }
                 }
@@ -378,7 +404,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                         word += currentChar;
                         word += '=';
                         tokens.push_back(Token(TokenType::TOKEN_COMPOUND_DIVIDE_OPERATOR, word, currentLine));
-                        std::println("Compound Divide: '{}', Line: {}", word, currentLine);
+                      //std::println("Compound Divide: '{}', Line: {}", word, currentLine);
                         word.clear();
                         totalLengthRead++; // Consume the next character as well
                     }
@@ -386,7 +412,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                     {
                         word += currentChar;
                         tokens.push_back(Token(TokenType::TOKEN_DIVISION_OPERATOR, word, currentLine));
-                        std::println("Divide: '{}', Line: {}", word, currentLine);
+                      //std::println("Divide: '{}', Line: {}", word, currentLine);
                         word.clear();
                     }
                 }
@@ -398,7 +424,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                         word += currentChar;
                         word += '?';
                         tokens.push_back(Token(TokenType::TOKEN_NULL_COALESCING_OPERATOR, word, currentLine));
-                        std::println("Null Coalescing: '{}', Line: {}", word, currentLine);
+                      //std::println("Null Coalescing: '{}', Line: {}", word, currentLine);
                         word.clear();
                         totalLengthRead++; // Consume the next character as well
                     }
@@ -406,7 +432,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                     {
                         word += currentChar;
                         tokens.push_back(Token(TokenType::TOKEN_NULLABLE_OPERATOR, word, currentLine));
-                        std::println("Nullable: '{}', Line: {}", word, currentLine);
+                      //std::println("Nullable: '{}', Line: {}", word, currentLine);
                         word.clear();
                     }
                 }
@@ -418,7 +444,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                         word += currentChar;
                         word += '=';
                         tokens.push_back(Token(TokenType::TOKEN_EQUALITY_OPERATOR, word, currentLine));
-                        std::println("Equality: '{}', Line: {}", word, currentLine);
+                      //std::println("Equality: '{}', Line: {}", word, currentLine);
                         word.clear();
                         totalLengthRead++; // Consume the next character as well
                     }
@@ -426,7 +452,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                     {
                         word += currentChar;
                         tokens.push_back(Token(TokenType::TOKEN_ASSIGNMENT_OPERATOR, word, currentLine));
-                        std::println("Assignment: '{}', Line: {}", word, currentLine);
+                      //std::println("Assignment: '{}', Line: {}", word, currentLine);
                         word.clear();
                     }
                 }
@@ -439,7 +465,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                         word += currentChar;
                         word += '=';
                         tokens.push_back(Token(TokenType::TOKEN_LESS_THAN_OR_EQUAL_OPERATOR, word, currentLine));
-                        std::println("Less Than or Equal: '{}', Line: {}", word, currentLine);
+                      //std::println("Less Than or Equal: '{}', Line: {}", word, currentLine);
                         word.clear();
                         totalLengthRead++; // Consume the next character as well
                     }
@@ -450,7 +476,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                         word += '~';
                         word += '~';
                         tokens.push_back(Token(TokenType::TOKEN_LAZY_RETURN_OPERATOR, word, currentLine));
-                        std::println("Lazy ReturnOperator: '{}', Line: {}", word, currentLine);
+                      //std::println("Lazy ReturnOperator: '{}', Line: {}", word, currentLine);
                         word.clear();
                         totalLengthRead += 2; // Consume the next two characters as well
                     }
@@ -462,7 +488,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                         word += '-';
                         word += '>';
                         tokens.push_back(Token(TokenType::TOKEN_CHAIN_OPERATOR, word, currentLine));
-                        std::println("Chain Operator: '{}', Line: {}", word, currentLine);
+                      //std::println("Chain Operator: '{}', Line: {}", word, currentLine);
                         word.clear();
                         totalLengthRead += 3; // Consume the next three characters as well
                     }
@@ -472,7 +498,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                     {
                         word += currentChar;
                         tokens.push_back(Token(TokenType::TOKEN_LESS_THAN_OPERATOR, word, currentLine));
-                        std::println("Less Than: '{}', Line: {}", word, currentLine);
+                      //std::println("Less Than: '{}', Line: {}", word, currentLine);
                         word.clear();
                     }
                 }
@@ -484,7 +510,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                         word += currentChar;
                         word += '=';
                         tokens.push_back(Token(TokenType::TOKEN_GREATER_THAN_OR_EQUAL_OPERATOR, word, currentLine));
-                        std::println("Greater Than or Equal: '{}', Line: {}", word, currentLine);
+                      //std::println("Greater Than or Equal: '{}', Line: {}", word, currentLine);
                         word.clear();
                         totalLengthRead++; // Consume the next character as well
                     }
@@ -493,7 +519,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                     {
                         word += currentChar;
                         tokens.push_back(Token(TokenType::TOKEN_GREATER_THAN_OPERATOR, word, currentLine));
-                        std::println("Greater Than: '{}', Line: {}", word, currentLine);
+                      //std::println("Greater Than: '{}', Line: {}", word, currentLine);
                         word.clear();
                     }
                 }
@@ -506,7 +532,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                         word += currentChar;
                         word += '=';
                         tokens.push_back(Token(TokenType::TOKEN_NOT_EQUALITY_OPERATOR, word, currentLine));
-                        std::println("Not Equality Operator: '{}', Line: {}", word, currentLine);
+                      //std::println("Not Equality Operator: '{}', Line: {}", word, currentLine);
                         word.clear();
                         totalLengthRead++; // Consume the next character as well
                     }
@@ -517,7 +543,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                         word += '-';
                         word += '>';
                         tokens.push_back(Token(TokenType::TOKEN_MODULE_NAMESPACE_CROSS_OPERATOR, word, currentLine));
-                        std::println("Module Namespace Cross Operator: '{}', Line: {}", word, currentLine);
+                      //std::println("Module Namespace Cross Operator: '{}', Line: {}", word, currentLine);
                         word.clear();
                         totalLengthRead += 2; // Consume the next two characters as well
                     }
@@ -526,7 +552,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                     {
                         word += currentChar;
                         tokens.push_back(Token(TokenType::TOKEN_NOT_OPERATOR, word, currentLine));
-                        std::println("NOT Operator: '{}', Line: {}", word, currentLine);
+                      //std::println("NOT Operator: '{}', Line: {}", word, currentLine);
                         word.clear();
                     }
                 }
@@ -535,7 +561,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                 {
                     word += currentChar;
                     tokens.push_back(Token(TokenType::TOKEN_AMPERSAND_OPERATOR, word, currentLine));
-                    std::println("Ampersand: '{}', Line: {}", word, currentLine);
+                  //std::println("Ampersand: '{}', Line: {}", word, currentLine);
                     word.clear();
                 }
                 currentState = LexerState::LEXER_STATE_DEFAULT;
@@ -548,56 +574,56 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                 {
                     word += currentChar;
                     tokens.push_back(Token(TokenType::TOKEN_LEFT_PARENTHESIS, word, currentLine));
-                    std::println("Left Parenthesis: '{}', Line: {}", word, currentLine);
+                  //std::println("Left Parenthesis: '{}', Line: {}", word, currentLine);
                     word.clear();
                 }
                 else if (currentChar == ')')
                 {
                     word += currentChar;
                     tokens.push_back(Token(TokenType::TOKEN_RIGHT_PARENTHESIS, word, currentLine));
-                    std::println("Right Parenthesis: '{}', Line: {}", word, currentLine);
+                  //std::println("Right Parenthesis: '{}', Line: {}", word, currentLine);
                     word.clear();
                 }
                 else if (currentChar == '{')
                 {
                     word += currentChar;
                     tokens.push_back(Token(TokenType::TOKEN_LEFT_BRACE, word, currentLine));
-                    std::println("Left Brace: '{}', Line: {}", word, currentLine);
+                  //std::println("Left Brace: '{}', Line: {}", word, currentLine);
                     word.clear();
                 }
                 else if (currentChar == '}')
                 {
                     word += currentChar;
                     tokens.push_back(Token(TokenType::TOKEN_RIGHT_BRACE, word, currentLine));
-                    std::println("Right Brace: '{}', Line: {}", word, currentLine);
+                  //std::println("Right Brace: '{}', Line: {}", word, currentLine);
                     word.clear();
                 }
                 else if (currentChar == '[')
                 {
                     word += currentChar;
                     tokens.push_back(Token(TokenType::TOKEN_LEFT_BRACKET, word, currentLine));
-                    std::println("Left Bracket: '{}', Line: {}", word, currentLine);
+                  //std::println("Left Bracket: '{}', Line: {}", word, currentLine);
                     word.clear();
                 }
                 else if (currentChar == ']')
                 {
                     word += currentChar;
                     tokens.push_back(Token(TokenType::TOKEN_RIGHT_BRACKET, word, currentLine));
-                    std::println("Right Bracket: '{}', Line: {}", word, currentLine);
+                  //std::println("Right Bracket: '{}', Line: {}", word, currentLine);
                     word.clear();
                 }
                 else if (currentChar == ';')
                 {
                     word += currentChar;
                     tokens.push_back(Token(TokenType::TOKEN_SEMICOLON, word, currentLine));
-                    std::println("Semicolon: '{}', Line: {}", word, currentLine);
+                  //std::println("Semicolon: '{}', Line: {}", word, currentLine);
                     word.clear();
                 }
                 else if (currentChar == ',')
                 {
                     word += currentChar;
                     tokens.push_back(Token(TokenType::TOKEN_COMMA, word, currentLine));
-                    std::println("Comma: '{}', Line: {}", word, currentLine);
+                  //std::println("Comma: '{}', Line: {}", word, currentLine);
                     word.clear();
                 }
                 currentState = LexerState::LEXER_STATE_DEFAULT;

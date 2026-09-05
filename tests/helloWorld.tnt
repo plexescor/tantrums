@@ -1,70 +1,74 @@
-// This is a single line comment
-int32 x = 5;
-int32 y = 10;
-float64 z = 3.14;
-bool flag = true;
-bool other = false;
+void main(auto argc, auto argv)
+{
 
-// Arithmetic operators
-int32 sum = x + y;
-int32 diff = x - y;
-int32 product = x * y;
-int32 quotient = x / y;
+    // This is a single line comment
+    int32 x = 5;
+    int32 y = 10;
+    float64 z = 3.14;
+    bool flag = true;
+    bool other = false;
 
-// Compound operators
-x += 5;
-x -= 5;
-x *= 2;
-x /= 2;
+    // Arithmetic operators
+    int32 sum = x + y;
+    int32 diff = x - y;
+    int32 product = x * y;
+    int32 quotient = x / y;
 
-// Increment and decrement
-x++;
-x--;
+    // Compound operators
+    x += 5;
+    x -= 5;
+    x *= 2;
+    x /= 2;
 
-// Comparison operators
-x == y;
-x != y;
-x < y;
-x > y;
-x <= y;
-x >= y;
-
-// Null stuff
-int32? nullable = null;
-int32? result = nullable ?? y;
-
-// String literal
-string name = "hello world";
-string empty = "";
-
-// Method and module access
-window->setSize(1280, 720);
-sdl!->initialize();
-
-// Chain operator
-window->setSize(1280, 720)<-->setPos(0, 0)<-->setFPS(60);
-
-// Lazy return
-return id <~~ id++;
-
-// Brackets and braces
-int32 arr[10];
-arr[0] = 5;
-
-// Control flow keywords
-if (x > 0) {
+    // Increment and decrement
     x++;
-} else {
     x--;
-}
 
-while (flag) {
-    break;
-}
+    // Comparison operators
+    x == y;
+    x != y;
+    x < y;
+    x > y;
+    x <= y;
+    x >= y;
 
-for i in range(10) {
-    continue;
-}
+    // Null stuff
+    int32? nullable = null;
+    int32? result = nullable ?? y;
 
-// Ampersand
-int32* ptr = &x;
+    // String literal
+    string name = "hello world";
+    string empty = "";
+
+    // Method and module access
+    window->setSize(1280, 720);
+    sdl!->initialize();
+
+    // Chain operator
+    window->setSize(1280, 720)<-->setPos(0, 0)<-->setFPS(60);
+
+    // Lazy return
+    return id <~~ id++;
+
+    // Brackets and braces
+    int32 arr[10];
+    arr[0] = 5;
+
+    // Control flow keywords
+    if (x > 0) {
+        x++;
+    } else {
+        x--;
+    }
+
+    while (flag) {
+        break;
+    }
+
+    for i in range(10) {
+        continue;
+    }
+
+    // Ampersand
+    int32* ptr = &x;
+}

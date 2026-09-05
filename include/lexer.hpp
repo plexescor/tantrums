@@ -1,7 +1,7 @@
 #pragma once
 #include <filesystem>
 #include <vector>
-
+#include <cstdint>
 #include "token.hpp"
 
 enum class LexerState
@@ -19,6 +19,8 @@ class Lexer
 {
     public:
         bool lexize(const std::filesystem::path& filePath);
+        // Tantrums future: non mut
+        std::vector<Token> getTokens() const;
 
     private:
         std::vector<Token> tokens;

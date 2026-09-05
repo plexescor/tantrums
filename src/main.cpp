@@ -1,6 +1,11 @@
-#include "lexer.hpp"
 #include <print>
+#include <thread>
 #include <chrono>
+#include <vector>
+
+#include "token.hpp"
+#include "lexer.hpp"
+#include "parser.hpp"
 
 int main(int argc, char* argv[])
 {
@@ -10,17 +15,36 @@ int main(int argc, char* argv[])
         return 1;
     }
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    Lexer lexer;
+
+    std::vector<std::thread> workers;
+
     for (int i = 1; i < argc; i++)
     {
-        if (!lexer.lexize(argv[i]))
+        std::thread worker([&argv, i]() 
         {
-            return 1;
-        }
+            std::vector<Token> tokens;
+            Lexer lexer;
+            if (!lexer.lexize(argv[i]))
+            {
+                return;
+            }
+            tokens = lexer.getTokens();
+            Parser parser(tokens);
+            parser.parse();
+            std::println("Finished processing file: {} ~ Worker: {}", argv[i], i);
+        });
+        workers.push_back(std::move(worker));
     }
+
+    for (auto& worker : workers)
+    {
+        worker.join();
+    }
+
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    std::println("Lexing time: {} ms", duration.count());
+    std::println("Compilation time: {} ms", duration.count());
+
 
     return 0;
 }

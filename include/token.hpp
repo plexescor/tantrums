@@ -1,8 +1,30 @@
 #pragma once
 
+#include <string>
+#include <cstdint>
 enum class TokenType
 {
-    TOKEN_KEYWORD,
+    TOKEN_INT8,
+    TOKEN_INT16,
+    TOKEN_INT32,
+    TOKEN_INT64,
+    TOKEN_INT128,
+    TOKEN_UINT8,
+    TOKEN_UINT16,
+    TOKEN_UINT32,
+    TOKEN_UINT64,
+    TOKEN_UINT128,
+    TOKEN_FLOAT32,
+    TOKEN_FLOAT64,
+    TOKEN_STRING,
+    TOKEN_BOOL,
+    TOKEN_VOID,
+    TOKEN_TRUE,
+    TOKEN_FALSE,
+    TOKEN_RETURN,
+    TOKEN_PURE,
+    TOKEN_HEAP,
+    TOKEN_USE,
     TOKEN_IDENTIFIER,
     TOKEN_INTEGER_LITERAL,
     TOKEN_FLOAT_LITERAL,
@@ -46,7 +68,6 @@ enum class TokenType
     TOKEN_ELSE,
     TOKEN_FOR,
     TOKEN_WHILE,
-    TOKEN_RETURN,
     TOKEN_BREAK,
     TOKEN_CONTINUE,
     TOKEN_AMPERSAND_OPERATOR,
