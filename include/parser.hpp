@@ -4,13 +4,14 @@
 #include <optional>
 
 #include "token.hpp"
+#include "ast.hpp"
 
 class Parser
 {
     public:
         Parser(const std::vector<Token>& tokens);
         ~Parser() = default;
-        void parse();
+        std::vector<ASTNode> parse();
     
     private:
         Token& expect(std::vector<TokenType> expectedTypes);
@@ -19,8 +20,12 @@ class Parser
         Token& peek();
         Token& current();
 
+        ASTNode parseStatement();
+        ASTNode parsePrint();
+
         std::vector<TokenType> getPossibleTokens_Print();
     private:
+        std::vector<ASTNode> ast_Vector;
         std::vector<Token> tokens;
         size_t currentPosition = 0;
 };

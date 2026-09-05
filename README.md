@@ -12,7 +12,7 @@ A compiled programming language with an LLVM backend, written from scratch in C+
 
 My previous attempt at a language ([Tantrums-DEPRECATED](https://github.com/plexescor/Tantrums-DEPRECATED)) was 100% AI generated. It worked, sort of, but I didn't understand most of what it was doing. I couldn't debug it confidently. I couldn't extend it without breaking things I didn't understand.
 
-This is the rewrite. No AI. Just me, the LLVM docs, and time.
+This is the rewrite. Minimal AI. Just me, the LLVM docs, an LLM or Two for understanding, and time.
 
 The long-term goal is to make Tantrums capable enough to port a real application I'm actively developing to it — proving the language works on a non-trivial real-world codebase.
 

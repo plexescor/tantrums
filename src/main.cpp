@@ -3,6 +3,7 @@
 #include <chrono>
 #include <vector>
 
+#include "ast.hpp"
 #include "token.hpp"
 #include "lexer.hpp"
 #include "parser.hpp"
@@ -23,6 +24,7 @@ int main(int argc, char* argv[])
         std::thread worker([&argv, i]() 
         {
             std::vector<Token> tokens;
+            std::vector<ASTNode> astNode;
             Lexer lexer;
             if (!lexer.lexize(argv[i]))
             {
@@ -30,7 +32,7 @@ int main(int argc, char* argv[])
             }
             tokens = lexer.getTokens();
             Parser parser(tokens);
-            parser.parse();
+            astNode = parser.parse();
             std::println("Finished processing file: {} ~ Worker: {}", argv[i], i);
         });
         workers.push_back(std::move(worker));

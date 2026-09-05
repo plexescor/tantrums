@@ -6,6 +6,7 @@
 
 #include "parser.hpp"
 #include "token.hpp"
+#include "ast.hpp"
 
 Parser::Parser(const std::vector<Token>& tokens)
 {
@@ -74,28 +75,49 @@ Token& Parser::current()
     return tokens[currentPosition];
 }
 
-void Parser::parse() 
+ASTNode Parser::parsePrint()
 {
     Token token = current();
-    if (currentPosition >= tokens.size()) return;
-    while (token.type != TokenType::TOKEN_END_OF_FILE)
+    token = advance();
+    token = expect(TokenType::TOKEN_LEFT_PARENTHESIS);
+    token = expect(getPossibleTokens_Print());
+    Token finalToken = token;
+    token = expect(TokenType::TOKEN_RIGHT_PARENTHESIS);
+    token = expect(TokenType::TOKEN_SEMICOLON);
+    token = current();
+
+    if (finalToken.type == TokenType::TOKEN_STRING_LITERAL)
+        return PrintNode { .value = finalToken.value };
+    else if (finalToken.type == TokenType::TOKEN_INTEGER_LITERAL)
+        return PrintNode { .value = std::stoi(finalToken.value)};
+    else if (finalToken.type == TokenType::TOKEN_FLOAT_LITERAL)
+        return PrintNode { .value = std::stof(finalToken.value)};
+}
+
+ASTNode Parser::parseStatement()
+{
+    Token token = current();
+    if (token.type == TokenType::TOKEN_IDENTIFIER)
     {
-        
-        if (token.type == TokenType::TOKEN_IDENTIFIER)
+        const std::string& value = token.value;
+        if (value == "print")
         {
-            const std::string& value = token.value;
-            if (value == "print")
-            {
-                token = advance();
-                token = expect(TokenType::TOKEN_LEFT_PARENTHESIS);
-                token = expect(getPossibleTokens_Print());
-                std::cout << token.value;
-                token = expect(TokenType::TOKEN_RIGHT_PARENTHESIS);
-                token = expect(TokenType::TOKEN_SEMICOLON);
-            }
+            return parsePrint();
         }
+
         token = current();
     }
+}
+
+std::vector<ASTNode> Parser::parse() 
+{
+    if (currentPosition >= tokens.size()) return {};
+    while (current().type != TokenType::TOKEN_END_OF_FILE)
+    {
+        ASTNode node = parseStatement();
+        ast_Vector.push_back(std::move(node));
+    }
+    return ast_Vector;
 }
 
 std::vector<TokenType> Parser::getPossibleTokens_Print()
