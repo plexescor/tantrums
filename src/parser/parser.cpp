@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <format>
 #include <vector>
+#include <print>
 
 #include "parser.hpp"
 #include "token.hpp"
@@ -86,12 +87,13 @@ ASTNode Parser::parsePrint()
     token = expect(TokenType::TOKEN_SEMICOLON);
     token = current();
 
+    // std::println("Parse print called!");
     if (finalToken.type == TokenType::TOKEN_STRING_LITERAL)
-        return PrintNode { .value = finalToken.value };
+        return ASTNode( PrintNode { .value = LiteralNode { .value = finalToken.value } } );
     else if (finalToken.type == TokenType::TOKEN_INTEGER_LITERAL)
-        return PrintNode { .value = std::stoi(finalToken.value)};
+        return ASTNode( PrintNode { .value = LiteralNode { .value = std::stoi(finalToken.value) } } );
     else if (finalToken.type == TokenType::TOKEN_FLOAT_LITERAL)
-        return PrintNode { .value = std::stof(finalToken.value)};
+        return ASTNode( PrintNode { .value = LiteralNode { .value = std::stod(finalToken.value) } } );
 }
 
 ASTNode Parser::parseStatement()

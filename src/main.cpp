@@ -7,12 +7,21 @@
 #include "token.hpp"
 #include "lexer.hpp"
 #include "parser.hpp"
+#include "codegen.hpp"
 
 int main(int argc, char* argv[])
-{
+{   
+    bool emitIR = false;
+    for (int i = 1; i < argc; i++)
+    {
+        if (std::string(argv[i]) == "--emit-llvm-ir")
+        {
+            emitIR = true;
+        }
+    }
     if (argc < 2) 
     {
-        std::println("Usage: tantrums <fileName.tnt>");
+        // std::println("Usage: tantrums <fileName.tnt>");
         return 1;
     }
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
@@ -21,19 +30,28 @@ int main(int argc, char* argv[])
 
     for (int i = 1; i < argc; i++)
     {
-        std::thread worker([&argv, i]() 
+        if (std::string(argv[i]) == "--emit-llvm-ir") continue;
+        std::thread worker([&argv, i, emitIR]() 
         {
             std::vector<Token> tokens;
             std::vector<ASTNode> astNode;
+
             Lexer lexer;
+
             if (!lexer.lexize(argv[i]))
             {
                 return;
             }
             tokens = lexer.getTokens();
+
             Parser parser(tokens);
             astNode = parser.parse();
-            std::println("Finished processing file: {} ~ Worker: {}", argv[i], i);
+            // std::println("AST size: {}", astNode.size());
+
+            CodeGenerator codegen(astNode);
+            codegen.generate(emitIR);
+
+            // std::println("Finished processing file: {} ~ Worker: {}", argv[i], i);
         });
         workers.push_back(std::move(worker));
     }
@@ -45,7 +63,7 @@ int main(int argc, char* argv[])
 
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    std::println("Compilation time: {} ms", duration.count());
+    // std::println("Compilation time: {} ms", duration.count());
 
 
     return 0;
