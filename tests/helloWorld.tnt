@@ -1,15 +1,70 @@
-// Test 1: Comment at absolute start of file
-// Test 2: Identifiers starting with or containing underscores
-int32 _my_var = 10;
-bool _flag = true;
+// This is a single line comment
+int32 x = 5;
+int32 y = 10;
+float64 z = 3.14;
+bool flag = true;
+bool other = false;
 
-// Test 3: Multi-char operators directly glued to identifiers
-if(a->b==c) {
-    _my_var++;
+// Arithmetic operators
+int32 sum = x + y;
+int32 diff = x - y;
+int32 product = x * y;
+int32 quotient = x / y;
+
+// Compound operators
+x += 5;
+x -= 5;
+x *= 2;
+x /= 2;
+
+// Increment and decrement
+x++;
+x--;
+
+// Comparison operators
+x == y;
+x != y;
+x < y;
+x > y;
+x <= y;
+x >= y;
+
+// Null stuff
+int32? nullable = null;
+int32? result = nullable ?? y;
+
+// String literal
+string name = "hello world";
+string empty = "";
+
+// Method and module access
+window->setSize(1280, 720);
+sdl!->initialize();
+
+// Chain operator
+window->setSize(1280, 720)<-->setPos(0, 0)<-->setFPS(60);
+
+// Lazy return
+return id <~~ id++;
+
+// Brackets and braces
+int32 arr[10];
+arr[0] = 5;
+
+// Control flow keywords
+if (x > 0) {
+    x++;
+} else {
+    x--;
 }
 
-// Test 4: String with escaped internal quotes
-string msg = "Hello \"World\"!";
+while (flag) {
+    break;
+}
 
-// Test 5: Malformed string ending at EOF (Unterminated)
-string broken = "This string never ends
+for i in range(10) {
+    continue;
+}
+
+// Ampersand
+int32* ptr = &x;

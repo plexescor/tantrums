@@ -237,29 +237,32 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
 
             case LexerState::LEXER_STATE_STRING:
             {
-                // The 1st double quote has already been consumed, so we can just keep reading until we find the closing double quote
-                // if next char is a quote, then we have reached the end of the string
-                char nextChar = (totalLengthRead + 1 < fileLength) ? fileContent[totalLengthRead + 1] : '\0';
-                if (nextChar == '"' && currentChar != '\\')
+                if (currentChar == '"')
                 {
-                    word += currentChar; // Add the current character to the string
-                    // End of string
+                    // closing quote hit, emit whatever is in word (even if empty)
                     tokens.push_back(Token(TokenType::TOKEN_STRING_LITERAL, word, currentLine));
                     std::println("String: '{}', Line: {}", word, currentLine);
                     word.clear();
-
-                    totalLengthRead += 2; // Consume the closing double quote
-                    currentColumn += 2; // Move to the next column after the closing double quote
-
                     currentState = LexerState::LEXER_STATE_DEFAULT;
-                    consumeChar = false; // Don't consume the current character, as it may be part of another token
+                }
+                else if (currentChar == '\\')
+                {
+                    // escape sequence, peek at next char
+                    char nextChar = (totalLengthRead + 1 < fileLength) ? fileContent[totalLengthRead + 1] : '\0';
+                    switch (nextChar)
+                    {
+                        case 'n':  word += '\n'; break;
+                        case 't':  word += '\t'; break;
+                        case '"':  word += '"';  break;
+                        case '\\': word += '\\'; break;
+                        default:   word += nextChar; break;
+                    }
+                    totalLengthRead++; // skip the next char since we already consumed it
                 }
                 else
                 {
-                    if (currentChar !='\\')
-                        word += currentChar;
+                    word += currentChar;
                 }
-
                 break;
             }
 
