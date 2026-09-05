@@ -641,6 +641,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
         }
         // totalLengthRead++;
     }
+    tokens.push_back(Token(TokenType::TOKEN_END_OF_FILE, "EOF", currentLine, currentColumn));
 
     return true;
 }

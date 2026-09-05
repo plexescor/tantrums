@@ -1,11 +1,109 @@
+#include <optional>
+#include <iostream>
+#include <stdexcept>
+#include <format>
+#include <vector>
+
 #include "parser.hpp"
+#include "token.hpp"
 
 Parser::Parser(const std::vector<Token>& tokens)
 {
     this->tokens = tokens;
 }
 
+Token& Parser::expect(std::vector<TokenType> expectedTypes)
+{
+    for (const auto& type : expectedTypes)
+    {
+        if (tokens[currentPosition].type == type)
+        {
+            return advance();
+        }
+    }
+    std::string expected = "";
+
+    for (const auto& type : expectedTypes)
+    {
+        expected += tokenTypeToString(type);
+    }
+    throw std::runtime_error(std::format(
+                "[Parser Error]: Expected a '{}' , Got a '{}'. Line: {}",
+                expected,
+                tokenTypeToString(tokens[currentPosition].type),
+                tokens[currentPosition].line
+            ));
+}
+
+Token& Parser::expect(TokenType type)
+{
+    if (tokens[currentPosition].type != type)
+    {
+        throw std::runtime_error(std::format(
+            "[Parser Error]: Expected a '{}' , Got a '{}'.\n Line: {}",
+            tokenTypeToString(type),
+            tokenTypeToString(tokens[currentPosition].type),
+            tokens[currentPosition].line
+        ));
+    }
+    return advance();
+}
+
+Token& Parser::advance()
+{
+    if (currentPosition < tokens.size())
+    {
+        // Equivalent of tantrums's:
+        // return tokens[currentPosition] <~~ currentPosition++;
+        return tokens[currentPosition++];
+    }
+    return tokens.back();
+}
+
+Token& Parser::peek()
+{
+    if (currentPosition + 1 < tokens.size())
+    {
+        return tokens[currentPosition + 1];
+    }
+    return tokens.back();
+}
+
+Token& Parser::current()
+{
+    return tokens[currentPosition];
+}
+
 void Parser::parse() 
 {
+    Token token = current();
+    if (currentPosition >= tokens.size()) return;
+    while (token.type != TokenType::TOKEN_END_OF_FILE)
+    {
+        
+        if (token.type == TokenType::TOKEN_IDENTIFIER)
+        {
+            const std::string& value = token.value;
+            if (value == "print")
+            {
+                token = advance();
+                token = expect(TokenType::TOKEN_LEFT_PARENTHESIS);
+                token = expect(getPossibleTokens_Print());
+                std::cout << token.value;
+                token = expect(TokenType::TOKEN_RIGHT_PARENTHESIS);
+                token = expect(TokenType::TOKEN_SEMICOLON);
+            }
+        }
+        token = current();
+    }
+}
 
+std::vector<TokenType> Parser::getPossibleTokens_Print()
+{
+    std::vector<TokenType> possible = {
+        TokenType::TOKEN_STRING_LITERAL,
+        TokenType::TOKEN_INTEGER_LITERAL,
+        TokenType::TOKEN_FLOAT_LITERAL
+    };
+    return possible;
 }
