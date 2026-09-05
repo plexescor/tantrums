@@ -1,6 +1,4 @@
 // Just understanding parser
-print("[Tantrum .tnt File] Hello Word\n");
+print("[Tantrum .tnt File] Hello World\n");
 print(46);
-print("\n");
 print(67.67);
-print("\n");

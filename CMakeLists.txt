@@ -22,6 +22,7 @@ add_executable(tantrums
     src/lexer/lexer.cpp
     src/parser/parser.cpp
     src/llvm/codegen.cpp
+    src/compiler/compiler.cpp
 )
 
 # Headers

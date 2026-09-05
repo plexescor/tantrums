@@ -26,6 +26,25 @@ CodeGenerator::CodeGenerator(std::vector<ASTNode>& nodes)
     this->nodes = nodes;
 }
 
+llvm::LLVMContext* CodeGenerator::getLlvmContext()
+{
+    return &context;
+}
+llvm::IRBuilder<>* CodeGenerator::getLlvmBuilder()
+{
+    return &builder;
+}
+
+llvm::Module* CodeGenerator::getLlvmModule()
+{
+    return module.get();
+}
+
+llvm::TargetMachine* CodeGenerator::getTargetMachine()
+{
+    return targetMachine;
+}
+
 void CodeGenerator::generate(bool emitIr)
 {
     // Boiler plate for llvm
@@ -43,7 +62,7 @@ void CodeGenerator::generate(bool emitIr)
     }
 
     llvm::TargetOptions opt;
-    llvm::TargetMachine* targetMachine = target->createTargetMachine(
+    targetMachine = target->createTargetMachine(
         tripleStr, "generic", "", opt, llvm::Reloc::PIC_
     );
 
