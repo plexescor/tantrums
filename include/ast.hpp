@@ -4,6 +4,15 @@
 #include <variant>
 #include <cstdint>
 
+// forward declarations
+struct VariableDeclarationNode;
+struct PrintNode;
+struct FunctionDeclarationNode;
+
+// ASTNode defined early so structs can use it
+using ASTNode = std::variant<VariableDeclarationNode, PrintNode, FunctionDeclarationNode>;
+
+
 struct LiteralNode
 {
     std::variant<
@@ -22,10 +31,31 @@ struct LiteralNode
     > value;
 };
 
+struct TypeNode 
+{
+    std::string name;
+    bool isNullable = false; // the ? op
+};
+
+struct FunctionDeclarationNode
+{
+    TypeNode type;
+    std::string name;
+
+    bool isHeap   = false;
+    bool isIo     = false;
+    bool isThrows = false;
+    bool isPure   = false;
+    bool isMut    = false;
+    bool isAuto   = false;
+
+    std::vector<ASTNode> body;
+};
+
 struct VariableDeclarationNode
 {
     bool isMutable;
-    std::string type;
+    TypeNode type;
     bool isAuto;
     std::string name;
 
@@ -37,5 +67,3 @@ struct PrintNode
 {
     LiteralNode value;
 };
-
-using ASTNode = std::variant<VariableDeclarationNode, PrintNode>;

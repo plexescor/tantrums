@@ -5,6 +5,7 @@
 #include <cstdint>
 enum class TokenType
 {
+    TOKEN_THROWS,
     TOKEN_INT8,
     TOKEN_INT16,
     TOKEN_INT32,
@@ -87,6 +88,7 @@ constexpr std::string_view tokenTypeToString(TokenType type)
     {
         // Types & Keywords
         case TokenType::TOKEN_AUTO: return "auto";
+        case TokenType::TOKEN_THROWS: return "throws";
         case TokenType::TOKEN_INT8: return "int8";
         case TokenType::TOKEN_INT16: return "int16";
         case TokenType::TOKEN_INT32: return "int32";
@@ -168,6 +170,7 @@ constexpr std::string_view tokenTypeToEnumName(TokenType type)
 {
     switch (type)
     {
+        case TokenType::TOKEN_THROWS: return "TOKEN_THROWS";
         case TokenType::TOKEN_AUTO: return "TOKEN_AUTO";
         case TokenType::TOKEN_MUT: return "TOKEN_MUT";
         case TokenType::TOKEN_INT8: return "TOKEN_INT8";

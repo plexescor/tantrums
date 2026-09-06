@@ -119,7 +119,7 @@ use "github.com/user/lib@1.2.0";
 ```tnt
 use "Maths";
 
-void main(auto argc, auto argv)
+int32 main(auto argc, auto argv)
 {
     heap int32* x = 5;
     heap int32* y = 5;
@@ -720,9 +720,9 @@ Two valid `main` signatures:
 ### Beginner
 
 ```tnt
-void main(auto argc, auto argv)
+int32 main(auto argc, auto argv)
 {
-    // compiler implicitly returns exitCodes!->Code!->SUCCESS
+    // compiler implicitly returns 0;
 }
 ```
 

@@ -110,7 +110,11 @@ void CodeGenerator::generate(bool emitIr)
                 // std::println("We reached print node path!");
                 generatePrint(print);
             },
-            [](const VariableDeclarationNode&) {}
+            [](const VariableDeclarationNode& varDecl) {},
+            [](const FunctionDeclarationNode fnDecl)
+            {
+
+            },
         }, nodes[currentNode]);
     }
 

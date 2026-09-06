@@ -32,6 +32,10 @@ bool Parser::isDeclKeyword(TokenType type)
         case TokenType::TOKEN_AUTO:
         case TokenType::TOKEN_MUT:
         case TokenType::TOKEN_HEAP:
+        case TokenType::TOKEN_VOID:
+        case TokenType::TOKEN_IO:        
+        case TokenType::TOKEN_THROWS:   
+        case TokenType::TOKEN_PURE:      
             return true;
         default:
             return false;
@@ -150,6 +154,92 @@ std::optional<ASTNode> Parser::parsePrint()
     return std::nullopt;
 }
 
+bool Parser::isAnnotationKeyword(TokenType type)
+{
+    switch (type)
+    {
+        case TokenType::TOKEN_IO:
+        case TokenType::TOKEN_PURE:
+        case TokenType::TOKEN_HEAP:
+        case TokenType::TOKEN_MUT:
+        return true; break;
+        default: return false;
+    }
+}
+
+std::optional<ASTNode> Parser::parseFunctionDeclaration()
+{
+    // When this gets called, the currentPosition is at a DeclKeyword, we need to check one by one
+    bool isHeap = false;
+    bool isIo = false;
+    bool isThrows = false;
+    bool isPure = false;
+    bool isAuto = false;
+    bool isMut = false;
+
+    Token typeToken;
+    // loop until we find an identifier(which wont happen as return) while respecting all annotations
+    while (current().type != TokenType::TOKEN_IDENTIFIER)
+    {
+        switch (current().type)
+        {
+            case TokenType::TOKEN_MUT:    isMut    = true; break;
+            case TokenType::TOKEN_HEAP:   isHeap   = true; break;
+            case TokenType::TOKEN_IO:     isIo     = true; break;
+            case TokenType::TOKEN_THROWS: isThrows = true; break;
+            case TokenType::TOKEN_PURE:   isPure   = true; break;
+            default: typeToken = current(); // return type keyword capture
+        }
+        advance();
+    }
+    // advance();
+    // now its at type/auto
+    Token token;
+    // Token typeToken = current();
+    if (typeToken.type == TokenType::TOKEN_AUTO) isAuto = true;
+
+    // expect an identifier or name
+    // advance();
+
+    Token nameToken = expect(TokenType::TOKEN_IDENTIFIER);
+    //No args currently
+    expect(TokenType::TOKEN_LEFT_PARENTHESIS);
+    expect(TokenType::TOKEN_RIGHT_PARENTHESIS);
+    expect(TokenType::TOKEN_LEFT_BRACE);
+
+    std::vector<ASTNode> body;
+    while (current().type != TokenType::TOKEN_RIGHT_BRACE
+        && current().type != TokenType::TOKEN_END_OF_FILE)
+    {
+        auto stmt = parseStatement();
+        if (stmt.has_value())
+            body.push_back(std::move(*stmt));
+        else
+            synchronize();
+    }
+    expect(TokenType::TOKEN_RIGHT_BRACE);
+
+    // debug: dump what we parsed
+    std::println("[FunctionDecl] name={} returnType={} mut={} heap={} io={} throws={} pure={}",
+        nameToken.value,
+        typeToken.value,
+        isMut, isHeap, isIo, isThrows, isPure
+    ); 
+
+    return ASTNode {
+    FunctionDeclarationNode {
+        .type     = TypeNode { .name = typeToken.value, .isNullable = false },
+        .name     = nameToken.value,
+        .isHeap   = isHeap,
+        .isIo     = isIo,
+        .isThrows = isThrows,
+        .isPure   = isPure,
+        .isMut    = isMut,
+        .isAuto   = isAuto,
+        .body    = std::move(body)
+    }};
+}
+
 std::optional<ASTNode> Parser::parseVariableDeclaration()
 {
     // i know i am sometimes calling advance without capturing return
@@ -157,6 +247,7 @@ std::optional<ASTNode> Parser::parseVariableDeclaration()
     //currently broken, i hadnt had time
     bool isMutable = false;
     bool isAuto = false;
+    bool isNullable = false;
 
     Token token = current();
 
@@ -171,8 +262,16 @@ std::optional<ASTNode> Parser::parseVariableDeclaration()
     Token typeToken = current(); 
     if (typeToken.type == TokenType::TOKEN_AUTO) isAuto = true;
 
-    // Now expect an identifier
+    // Now expect an identifier or nullable op
     advance();
+    token = current();
+    if (token.type == TokenType::TOKEN_NULLABLE_OPERATOR)
+    {
+        isNullable = true;
+        advance();
+    }
+    if (isNullable) std::println("Nullable");
+
     Token nameToken = expect(TokenType::TOKEN_IDENTIFIER);
 
     expect(TokenType::TOKEN_ASSIGNMENT_OPERATOR);
@@ -184,7 +283,7 @@ std::optional<ASTNode> Parser::parseVariableDeclaration()
     return ASTNode(
         VariableDeclarationNode { 
             .isMutable = isMutable,
-            .type = typeToken.value, 
+            .type = TypeNode { .name = typeToken.value, .isNullable = isNullable}, 
             .isAuto = isAuto,
             .name = nameToken.value,
             .value = LiteralNode { .value = litVal.value }
@@ -202,9 +301,29 @@ std::optional<ASTNode> Parser::parseStatement()
             return parsePrint();
         }
     }
+
     else if (isDeclKeyword(token.type))
     {
+        size_t offset = 0;
+    // std::println("[DEBUG] starting scan from: {} type: {}", 
+        // tokens[currentPosition].value,
+        // tokenTypeToString(tokens[currentPosition].type));
+
+    while (tokens[currentPosition + offset].type != TokenType::TOKEN_IDENTIFIER)
+    {
+        // std::println("[DEBUG] offset={} token={}", offset, tokens[currentPosition + offset].value);
+        offset++;
+    }
+
+    // std::println("[DEBUG] found identifier: {} next: {}",
+        // tokens[currentPosition + offset].value,
+        // tokenTypeToString(tokens[currentPosition + offset + 1].type));
+
+    if (tokens[currentPosition + offset + 1].type == TokenType::TOKEN_LEFT_PARENTHESIS)
+        return parseFunctionDeclaration();
+    else
         return parseVariableDeclaration();
+
     }
 
     hadError = true;

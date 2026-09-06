@@ -143,6 +143,18 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                     {
                         tokens.push_back(Token(TokenType::TOKEN_MUT, word, currentLine));
                     }
+                    else if (word == "throws")
+                    {
+                        tokens.push_back(Token(TokenType::TOKEN_THROWS, word, currentLine));
+                    }
+                    else if (word == "io")
+                    {
+                        tokens.push_back(Token(TokenType::TOKEN_IO, word, currentLine));
+                    }
+                    else if (word == "void")
+                    {
+                        tokens.push_back(Token(TokenType::TOKEN_VOID, word, currentLine));
+                    }
                     else if (word == "use")
                     {
                         tokens.push_back(Token(TokenType::TOKEN_USE, word, currentLine));

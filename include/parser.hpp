@@ -16,6 +16,7 @@ class Parser
     
     private:
         bool isDeclKeyword(TokenType type);
+        bool isAnnotationKeyword(TokenType type);
         Token& expect(std::vector<TokenType> expectedTypes);
         Token& expect(TokenType type);
         Token& advance();
@@ -26,6 +27,7 @@ class Parser
         std::optional<ASTNode> parseStatement();
         std::optional<ASTNode> parsePrint();
         std::optional<ASTNode> parseVariableDeclaration();
+        std::optional<ASTNode> parseFunctionDeclaration();
 
         std::vector<TokenType> getPossibleTokens_Print();
         std::vector<TokenType> getPossibleTokens_Decl();
