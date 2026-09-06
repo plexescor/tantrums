@@ -380,8 +380,8 @@ std::vector<TokenType> Parser::getPossibleTokens_Decl()
         TokenType::TOKEN_UINT64,
 
         TokenType::TOKEN_BOOL,
-        TokenType::TOKEN_STRING,
-        TokenType::TOKEN_STAR_OPERATOR
+        TokenType::TOKEN_STRING
+        // TokenType::TOKEN_STAR_OPERATOR
     };
     return possible;
 }

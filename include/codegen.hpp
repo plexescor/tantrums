@@ -22,6 +22,7 @@ class CodeGenerator
 
     private:
         void generatePrint(const PrintNode& printNode);
+        void generateFunction(const FunctionDeclarationNode& functionDeclNode);
 
     private:
         llvm::FunctionCallee printfFunc;
