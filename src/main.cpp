@@ -13,6 +13,7 @@
 #include "parser.hpp"
 #include "codegen.hpp"
 #include "compiler.hpp"
+#include "typeChecker.hpp"
 
 int main(int argc, char* argv[])
 {   
@@ -46,7 +47,7 @@ int main(int argc, char* argv[])
 		{
 			// Sorry for my bad time accumulation
 			std::vector<Token> tokens;
-			std::vector<ASTNode> astNode;
+			std::vector<ASTNode> astNodes;
 
 			Lexer lexer;
 			std::println("Lexing file: {} : Progress: {}%", argv[i], 0);
@@ -62,15 +63,18 @@ int main(int argc, char* argv[])
 
 			std::println("Parsing file: {} : Progress: {}%", argv[i], 20);
 			Parser parser(tokens);
-			astNode = parser.parse();
-			// std::println("AST size: {}", astNode.size());
+			astNodes = parser.parse();
+			// std::println("AST size: {}", astNodes.size());
 
 			std::chrono::steady_clock::time_point end_ = std::chrono::steady_clock::now();
 			auto duration_ = std::chrono::duration_cast<std::chrono::milliseconds>(end_ - end);
 			std::println("Parsing took: {} ms", duration_.count());
 
+			TypeChecker typeChecker(astNodes);
+			bool result = typeChecker.check();
+
 			std::println("Generating IR for: {} : Progress: {}%", argv[i], 40);
-			std::unique_ptr<CodeGenerator> codegen = std::make_unique<CodeGenerator>(astNode);
+			std::unique_ptr<CodeGenerator> codegen = std::make_unique<CodeGenerator>(astNodes);
 			codegen->generate(emitIR);
 
 			std::chrono::steady_clock::time_point end__ = std::chrono::steady_clock::now();

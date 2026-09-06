@@ -105,7 +105,7 @@ void CodeGenerator::generate(bool emitIr)
 		// std::println("Node index: {}", nodes[currentNode].index());
 		std::visit(Overloaded 
 		{
-			[this](const FunctionDeclarationNode fnDecl)
+			[this](const FunctionDeclarationNode& fnDecl)
 			{
 				generateFunction(fnDecl);   
 			},
@@ -192,12 +192,13 @@ void CodeGenerator::generateFunction(const FunctionDeclarationNode& functionDecl
 				generatePrint(print); 
 			},
 			[](const VariableDeclarationNode&)
-			{
+			{},
 
-			}, //Functinos inside functinos! Subject unexplained removal
+			// }, //Functinos inside functinos! Subject unexplained removal
+			// currently disabled
 			[this](const FunctionDeclarationNode& fn) 
 			{ 
-				generateFunction(fn); 
+				// generateFunction(fn); 
 			}, 
 		}, node);
 	}

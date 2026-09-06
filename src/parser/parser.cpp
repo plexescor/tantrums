@@ -277,6 +277,7 @@ std::optional<ASTNode> Parser::parseVariableDeclaration()
 	expect(TokenType::TOKEN_ASSIGNMENT_OPERATOR);
 
 	Token litVal = expect(getPossibleTokens_Print());
+	LiteralNode lit = parseLiteral(litVal);
 
 	expect(TokenType::TOKEN_SEMICOLON);
 
@@ -286,8 +287,35 @@ std::optional<ASTNode> Parser::parseVariableDeclaration()
 			.type = TypeNode { .name = typeToken.value, .isNullable = isNullable}, 
 			.isAuto = isAuto,
 			.name = nameToken.value,
-			.value = LiteralNode { .value = litVal.value }
+			.value = lit
 		});
+}
+
+LiteralNode Parser::parseLiteral(const Token& tok)
+{
+	// To do fix make this shit better
+	// i am not doing it because its 11:24pm
+    switch (tok.type)
+    {
+        case TokenType::TOKEN_INTEGER_LITERAL:
+            // int32 for now
+            return LiteralNode { .value = static_cast<int32_t>(std::stoi(tok.value)) };
+
+        case TokenType::TOKEN_FLOAT_LITERAL:
+            // if it has 'f' suffix, float, else double
+            if (tok.value.back() == 'f')
+                return LiteralNode { .value = std::stof(tok.value) };
+            return LiteralNode { .value = std::stod(tok.value) };
+
+        case TokenType::TOKEN_STRING_LITERAL:
+            return LiteralNode { .value = tok.value };
+
+        case TokenType::TOKEN_BOOL_LITERAL:
+            return LiteralNode { .value = tok.value == "true" };
+
+		// just convert to string and do a formality
+        default: return LiteralNode { .value = std::string(tok.value) };
+    }
 }
 
 std::optional<ASTNode> Parser::parseStatement()

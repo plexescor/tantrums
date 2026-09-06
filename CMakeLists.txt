@@ -24,6 +24,7 @@ add_executable(tantrums
 	src/llvm/codegen.cpp
 	src/compiler/compiler.cpp
 	src/symbol/symbolTable.cpp
+	src/checkers/typeChecker.cpp
 )
 
 # Headers

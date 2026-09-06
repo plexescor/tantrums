@@ -23,6 +23,7 @@ class Parser
 		Token& peek();
 		Token& current();
 		void synchronize();
+		LiteralNode parseLiteral(const Token& tok);
 
 		std::optional<ASTNode> parseStatement();
 		std::optional<ASTNode> parsePrint();
