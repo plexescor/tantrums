@@ -67,12 +67,12 @@ impl module Maths;
 
 expose void Add(int32* x, int32* y, int32* result)
 {
-    *result = *x + *y;
+	*result = *x + *y;
 }
 
 expose void Sub(int32* x, int32* y, int32* result)
 {
-    *result = *x - *y;
+	*result = *x - *y;
 }
 ```
 
@@ -84,14 +84,14 @@ expose void Sub(int32* x, int32* y, int32* result)
 
 ```
 myproject/
-    tantrum.proj
-    src/
-        main.tnt
-        modules/
-            MyMod/
-                module.tnt       // module Maths;
-                userAdd.tnt      // impl module Maths;
-                userSub.tnt      // impl module Maths;
+	tantrum.proj
+	src/
+		main.tnt
+		modules/
+			MyMod/
+				module.tnt	   // module Maths;
+				userAdd.tnt	  // impl module Maths;
+				userSub.tnt	  // impl module Maths;
 ```
 
 #### tantrum.proj
@@ -121,10 +121,10 @@ use "Maths";
 
 int32 main(auto argc, auto argv)
 {
-    heap int32* x = 5;
-    heap int32* y = 5;
-    heap int32* result = 0;
-    Maths!->Add(x, y, result);
+	heap int32* x = 5;
+	heap int32* y = 5;
+	heap int32* result = 0;
+	Maths!->Add(x, y, result);
 }
 ```
 
@@ -169,11 +169,11 @@ extern void free(void* ptr);
 
 ```tnt
 if (x > 0) {
-    // ...
+	// ...
 } else if (x == 0) {
-    // ...
+	// ...
 } else {
-    // ...
+	// ...
 }
 ```
 
@@ -182,11 +182,11 @@ if (x > 0) {
 
 ```tnt
 for i in range(0, 10) {
-    // ...
+	// ...
 }
 
 for i in range(10) {
-    // ...
+	// ...
 }
 ```
 
@@ -194,7 +194,7 @@ Iterating over a collection:
 
 ```tnt
 for item in myList {
-    // ...
+	// ...
 }
 ```
 
@@ -202,14 +202,14 @@ While loop:
 
 ```tnt
 while (condition) {
-    // ...
+	// ...
 }
 ```
 
 Loop control:
 
 ```tnt
-break;      // exit loop
+break;	  // exit loop
 continue;   // skip to next iteration
 ```
 
@@ -220,9 +220,9 @@ continue;   // skip to next iteration
 ### 5.1 Storage Classes
 
 ```tnt
-heap int* x = ...;       // heap allocated — you own it, you free it
-stack int y = 5;         // explicitly stack (usually implicit)
-static int z = 0;        // static storage duration
+heap int* x = ...;	   // heap allocated — you own it, you free it
+stack int y = 5;		 // explicitly stack (usually implicit)
+static int z = 0;		// static storage duration
 ```
 
 - stack is the default when no storage class is specified
@@ -260,7 +260,7 @@ shared heap int* y = ...;   // explicitly shared, treated conservatively
 ### 6.1 Primitive Types
 
 ```tnt
-int8    uint8
+int8	uint8
 int16   uint16
 int32   uint32
 int64   uint64
@@ -270,8 +270,8 @@ float32
 float64
 
 bool
-byte        // alias for uint8, raw memory
-char        // unicode codepoint, 4 bytes
+byte		// alias for uint8, raw memory
+char		// unicode codepoint, 4 bytes
 ```
 
 - `int` is a convenience alias — `int32` on 32-bit targets, `int64` on 64-bit — fixed in the spec, not platform-ambiguous
@@ -279,7 +279,7 @@ char        // unicode codepoint, 4 bytes
 
 ```tnt
 int32 x = 5;
-int64 y = int64(x);    // explicit cast required
+int64 y = int64(x);	// explicit cast required
 ```
 
 ### 6.2 Strings
@@ -312,9 +312,9 @@ const string APP_NAME = "MyApp";
 ### 6.4 Auto Inference
 
 ```tnt
-auto x = 5;         // inferred as int32, locked in at declaration
-auto y = 5.0;       // inferred as float64
-x = "hello";        // COMPILE ERROR — x is int32
+auto x = 5;		 // inferred as int32, locked in at declaration
+auto y = 5.0;	   // inferred as float64
+x = "hello";		// COMPILE ERROR — x is int32
 ```
 
 - `auto` infers once at declaration, type never changes
@@ -324,9 +324,9 @@ x = "hello";        // COMPILE ERROR — x is int32
 ### 6.5 Nullable Types
 
 ```tnt
-int x = 5;          // cannot be null, compiler enforced
-int? y = null;      // explicitly nullable
-int? z = 10;        // nullable but has a value
+int x = 5;		  // cannot be null, compiler enforced
+int? y = null;	  // explicitly nullable
+int? z = 10;		// nullable but has a value
 ```
 
 - non-nullable by default
@@ -334,20 +334,20 @@ int? z = 10;        // nullable but has a value
 
 ```tnt
 int? val = getResult();
-io!->print(val->toString());     // COMPILE ERROR — might be null
+io!->print(val->toString());	 // COMPILE ERROR — might be null
 
 if (val != null) {
-    io!->print(val->toString()); // fine — compiler knows non-null here
+	io!->print(val->toString()); // fine — compiler knows non-null here
 }
 
-io!->print(val ?? "default");    // null coalesce
+io!->print(val ?? "default");	// null coalesce
 ```
 
 ### 6.6 Mutation
 
 ```tnt
-mut int x = 5;      // mutable
-int y = 10;         // immutable by default
+mut int x = 5;	  // mutable
+int y = 10;		 // immutable by default
 ```
 
 - immutable by default, `mut` opts in
@@ -358,9 +358,9 @@ int y = 10;         // immutable by default
 
 ```tnt
 enum INIT_TYPE {
-    EVERYTHING = 0,
-    VIDEO = 1,
-    AUDIO = 2
+	EVERYTHING = 0,
+	VIDEO = 1,
+	AUDIO = 2
 }
 ```
 
@@ -370,9 +370,9 @@ enum INIT_TYPE {
 
 ```tnt
 enum ErrorCode : uint8 {
-    NONE = 0,
-    GENERIC = 1,
-    TIMEOUT = 2
+	NONE = 0,
+	GENERIC = 1,
+	TIMEOUT = 2
 }
 ```
 
@@ -382,15 +382,15 @@ Structs are pure data containers. No methods, no behavior, no inheritance.
 
 ```tnt
 struct Vec2 {
-    float32 x;
-    float32 y;
+	float32 x;
+	float32 y;
 }
 
 struct Color {
-    uint8 r;
-    uint8 g;
-    uint8 b;
-    uint8 a;
+	uint8 r;
+	uint8 g;
+	uint8 b;
+	uint8 a;
 }
 ```
 
@@ -404,21 +404,21 @@ Classes are data + behavior. No inheritance (for now — may be revisited).
 
 ```tnt
 class Window {
-    int32 width;
-    int32 height;
-    string title;
+	int32 width;
+	int32 height;
+	string title;
 
-    mut void setSize(int32 w, int32 h) {
-        width = w;
-        height = h;
-    }
+	mut void setSize(int32 w, int32 h) {
+		width = w;
+		height = h;
+	}
 
-    mut void setTitle(string t) {
-        title = t;
-    }
+	mut void setTitle(string t) {
+		title = t;
+	}
 
-    int32 getWidth() { return width; }
-    int32 getHeight() { return height; }
+	int32 getWidth() { return width; }
+	int32 getHeight() { return height; }
 }
 ```
 
@@ -432,13 +432,13 @@ class Window {
 
 ```tnt
 class List<T> {
-    heap T* data;
-    int32 length;
-    int32 capacity;
+	heap T* data;
+	int32 length;
+	int32 capacity;
 
-    mut void push(T item) { ... }
-    T pop() { ... }
-    T get(int32 index) { ... }
+	mut void push(T item) { ... }
+	T pop() { ... }
+	T get(int32 index) { ... }
 }
 ```
 
@@ -446,7 +446,7 @@ Constrained generics via interfaces:
 
 ```tnt
 T max<T: Comparable<T>>(T a, T b) {
-    return a->compareTo(b) > 0 ? a : b;
+	return a->compareTo(b) > 0 ? a : b;
 }
 ```
 
@@ -456,16 +456,16 @@ T max<T: Comparable<T>>(T a, T b) {
 
 ```tnt
 interface Drawable {
-    mut void draw(Renderer* r);
-    int32 getWidth();
-    int32 getHeight();
+	mut void draw(Renderer* r);
+	int32 getWidth();
+	int32 getHeight();
 }
 
 class Sprite {
-    mut void draw(Renderer* r) { ... }
-    int32 getWidth() { ... }
-    int32 getHeight() { ... }
-    // implicitly implements Drawable — no declaration needed
+	mut void draw(Renderer* r) { ... }
+	int32 getWidth() { ... }
+	int32 getHeight() { ... }
+	// implicitly implements Drawable — no declaration needed
 }
 ```
 
@@ -513,8 +513,8 @@ Compiler enforcement rules:
 
 ```tnt
 error SDLInitFailed {
-    string message;
-    int sdlErrorCode;
+	string message;
+	int sdlErrorCode;
 }
 ```
 
@@ -527,15 +527,15 @@ error SDLInitFailed {
 
 ```tnt
 error AppError {
-    string message;
+	string message;
 }
 
 error SDLError extends AppError {
-    int sdlCode;
+	int sdlCode;
 }
 
 error SDLInitError extends SDLError {
-    string subsystem;
+	string subsystem;
 }
 ```
 
@@ -546,26 +546,26 @@ error SDLInitError extends SDLError {
 
 ```tnt
 throws void initialize() {
-    if (!hardware->available()) {
-        throw SDLInitError {
-            message: "init failed",
-            sdlCode: -1,
-            subsystem: "video"
-        };
-    }
+	if (!hardware->available()) {
+		throw SDLInitError {
+			message: "init failed",
+			sdlCode: -1,
+			subsystem: "video"
+		};
+	}
 }
 ```
 
 ```tnt
 try sdl->initialize()
 catch (SDLInitError e) {
-    io!->print("subsystem: " + e->subsystem);
+	io!->print("subsystem: " + e->subsystem);
 }
 catch (SDLError e) {
-    io!->print("sdl code: " + e->sdlCode->toString());
+	io!->print("sdl code: " + e->sdlCode->toString());
 }
 catch (AppError e) {
-    io!->print("error: " + e->message);
+	io!->print("error: " + e->message);
 }
 ```
 
@@ -586,8 +586,8 @@ Inline catch:
 
 ```tnt
 heap Window** w_ = try sdl!->makeWindow() catch (e) {
-    io!->print("failed: " + e->message);
-    return exitCodes!->Code!->FAILURE;
+	io!->print("failed: " + e->message);
+	return exitCodes!->Code!->FAILURE;
 };
 ```
 
@@ -618,17 +618,17 @@ panic("invariant violated: context was null");
 // verbose version
 uint32 getId()
 {
-    static uint32 id = 0;
-    uint32 temp = id;
-    id++;
-    return temp;
+	static uint32 id = 0;
+	uint32 temp = id;
+	id++;
+	return temp;
 }
 
 // with <~~
 uint32 getId()
 {
-    static uint32 id = 0;
-    return id <~~ id++;
+	static uint32 id = 0;
+	return id <~~ id++;
 }
 ```
 
@@ -643,17 +643,17 @@ uint32 getId()
 ```tnt
 T pop()
 {
-    return data[length - 1] <~~ length--;
+	return data[length - 1] <~~ length--;
 }
 
 bool consumeFlag()
 {
-    return flag <~~ flag = false;
+	return flag <~~ flag = false;
 }
 
 int32 advance()
 {
-    return cursor <~~ cursor += stride;
+	return cursor <~~ cursor += stride;
 }
 ```
 
@@ -700,9 +700,9 @@ Multi-line:
 
 ```tnt
 **w_->setSize(1280, 720)
-    <-->setPos(0, 0)
-    <-->setTitle("My Window")
-    <-->setFPS(sdl!->SYNC!->VERTICAL_SYNC!->default);
+	<-->setPos(0, 0)
+	<-->setTitle("My Window")
+	<-->setFPS(sdl!->SYNC!->VERTICAL_SYNC!->default);
 ```
 
 `try` over full chain:
@@ -722,7 +722,7 @@ Two valid `main` signatures:
 ```tnt
 int32 main(auto argc, auto argv)
 {
-    // compiler implicitly returns 0;
+	// compiler implicitly returns 0;
 }
 ```
 
@@ -731,7 +731,7 @@ int32 main(auto argc, auto argv)
 ```tnt
 exitCodes!->Code main(auto argc, auto argv)
 {
-    return exitCodes!->Code!->SUCCESS;
+	return exitCodes!->Code!->SUCCESS;
 }
 ```
 
@@ -747,10 +747,10 @@ Stdlib is written as real `.tnt` files that call libc at the bottom via `extern`
 
 ```
 main.tnt
-  → io!->print()        // pure Tantrums
-    → extern puts()     // one FFI call to libc
-      → libc
-        → syscall
+  → io!->print()		// pure Tantrums
+	→ extern puts()	 // one FFI call to libc
+	  → libc
+		→ syscall
 ```
 
 example `io.tnt`:
@@ -760,11 +760,11 @@ extern int32 puts(string s);
 extern int32 printf(string fmt);
 
 expose io void print(string s) {
-    puts(s);
+	puts(s);
 }
 
 expose io void printLine(string s) {
-    printf(s + "\n");
+	printf(s + "\n");
 }
 ```
 
@@ -783,34 +783,34 @@ alias sdlcore sdl;
 
 exitCodes!->Code main(auto argc, auto argv)
 {
-    try sdl!->initialize(sdl!->INIT_TYPE!->EVERYTHING);
+	try sdl!->initialize(sdl!->INIT_TYPE!->EVERYTHING);
 
-    heap Context** context = try sdl!->makeContext();
-    heap Window** w_ = try sdl!->makeWindow();
-    heap Renderer** r_ = try sdl!->makeRenderer();
+	heap Context** context = try sdl!->makeContext();
+	heap Window** w_ = try sdl!->makeWindow();
+	heap Renderer** r_ = try sdl!->makeRenderer();
 
-    try **context->setAPI(sdl!->G_API!->VULKAN);
+	try **context->setAPI(sdl!->G_API!->VULKAN);
 
-    try **w_->setContext(*context);
-    try **w_->setSize(1280, 720)
-        <-->setPos(0, 0)
-        <-->setFPS(sdl!->SYNC!->VERTICAL_SYNC!->default);
+	try **w_->setContext(*context);
+	try **w_->setSize(1280, 720)
+		<-->setPos(0, 0)
+		<-->setFPS(sdl!->SYNC!->VERTICAL_SYNC!->default);
 
-    try **r_->setContext(*context);
-    try **r_->setWindow(*w_);
-    try **r_->debug_MakeBlack();
-    try **r_->paint();
+	try **r_->setContext(*context);
+	try **r_->setWindow(*w_);
+	try **r_->debug_MakeBlack();
+	try **r_->paint();
 
-    io!->pauseByKey(io!->KEY!->ANY_KEY, "Press any key to quit...");
+	io!->pauseByKey(io!->KEY!->ANY_KEY, "Press any key to quit...");
 
-    **r_->clear();
-    **r_->detatch();
-    **w_->hide();
+	**r_->clear();
+	**r_->detatch();
+	**w_->hide();
 
-    sdl!->endAll();
-    sdl!->freeResources();
+	sdl!->endAll();
+	sdl!->freeResources();
 
-    return exitCodes!->Code!->SUCCESS;
+	return exitCodes!->Code!->SUCCESS;
 }
 ```
 

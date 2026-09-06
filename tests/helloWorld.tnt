@@ -1,135 +1,135 @@
 //should pass
 int32 main()
 {
-    int8? x = 1;
+	int8? x = 1;
 
-    int16 x =1;
-    uint64 y = 68;
-    auto h = 48;
-    mut int8 x = 4;
-    mut int16 y =5;
-    mut auto b =38;
+	int16 x =1;
+	uint64 y = 68;
+	auto h = 48;
+	mut int8 x = 4;
+	mut int16 y =5;
+	mut auto b =38;
 
-    // Currently print is hardcoded, this is just a funciton for developing until stdlib is developed
-    print("Print is working\n");
+	// Currently print is hardcoded, this is just a funciton for developing until stdlib is developed
+	print("Print is working\n");
 
-    // this is line 13
-    //shouldnt
-    //int8 = 8;
-    //uint4 x = 76;
-    //mut x = 5;
-    //auto auto = 57;
+	// this is line 13
+	//shouldnt
+	//int8 = 8;
+	//uint4 x = 76;
+	//mut x = 5;
+	//auto auto = 57;
 
-    //int8 o = ;
-    //mut int8 "SEXY BOY" = 4;
+	//int8 o = ;
+	//mut int8 "SEXY BOY" = 4;
 
-    //auto 67 = 10;
-}    
+	//auto 67 = 10;
+}	
 
 int32 test_1()
 {
-    int8? x = 1;
+	int8? x = 1;
 
-    int16 x =1;
-    uint64 y = 68;
-    auto h = 48;
-    mut int8 x = 4;
-    mut int16 y =5;
-    mut auto b =38;
+	int16 x =1;
+	uint64 y = 68;
+	auto h = 48;
+	mut int8 x = 4;
+	mut int16 y =5;
+	mut auto b =38;
 
-    // Currently print is hardcoded, this is just a funciton for developing until stdlib is developed
-    print("Print is working\n");
+	// Currently print is hardcoded, this is just a funciton for developing until stdlib is developed
+	print("Print is working\n");
 
-    // this is line 13
-    //shouldnt
-    //int8 = 8;
-    //uint4 x = 76;
-    //mut x = 5;
-    //auto auto = 57;
+	// this is line 13
+	//shouldnt
+	//int8 = 8;
+	//uint4 x = 76;
+	//mut x = 5;
+	//auto auto = 57;
 
-    //int8 o = ;
-    //mut int8 "SEXY BOY" = 4;
+	//int8 o = ;
+	//mut int8 "SEXY BOY" = 4;
 
-    //auto 67 = 10;
-}    
+	//auto 67 = 10;
+}	
 
 int32 test_2()
 {
-    int8? x = 1;
+	int8? x = 1;
 
-    int16 x =1;
-    uint64 y = 68;
-    auto h = 48;
-    mut int8 x = 4;
-    mut int16 y =5;
-    mut auto b =38;
+	int16 x =1;
+	uint64 y = 68;
+	auto h = 48;
+	mut int8 x = 4;
+	mut int16 y =5;
+	mut auto b =38;
 
-    // Currently print is hardcoded, this is just a funciton for developing until stdlib is developed
-    print("Print is working\n");
+	// Currently print is hardcoded, this is just a funciton for developing until stdlib is developed
+	print("Print is working\n");
 
-    // this is line 13
-    //shouldnt
-    //int8 = 8;
-    //uint4 x = 76;
-    //mut x = 5;
-    //auto auto = 57;
+	// this is line 13
+	//shouldnt
+	//int8 = 8;
+	//uint4 x = 76;
+	//mut x = 5;
+	//auto auto = 57;
 
-    //int8 o = ;
-    //mut int8 "SEXY BOY" = 4;
+	//int8 o = ;
+	//mut int8 "SEXY BOY" = 4;
 
-    //auto 67 = 10;
-}    
+	//auto 67 = 10;
+}	
 
 int32 PLATGTAVAUTOGRAND()
 {
-    int8? x = 1;
+	int8? x = 1;
 
-    int16 x =1;
-    uint64 y = 68;
-    auto h = 48;
-    mut int8 x = 4;
-    mut int16 y =5;
-    mut auto b =38;
+	int16 x =1;
+	uint64 y = 68;
+	auto h = 48;
+	mut int8 x = 4;
+	mut int16 y =5;
+	mut auto b =38;
 
-    // Currently print is hardcoded, this is just a funciton for developing until stdlib is developed
-    print("Print is working\n");
+	// Currently print is hardcoded, this is just a funciton for developing until stdlib is developed
+	print("Print is working\n");
 
-    // this is line 13
-    //shouldnt
-    //int8 = 8;
-    //uint4 x = 76;
-    //mut x = 5;
-    //auto auto = 57;
+	// this is line 13
+	//shouldnt
+	//int8 = 8;
+	//uint4 x = 76;
+	//mut x = 5;
+	//auto auto = 57;
 
-    //int8 o = ;
-    //mut int8 "SEXY BOY" = 4;
+	//int8 o = ;
+	//mut int8 "SEXY BOY" = 4;
 
-    //auto 67 = 10;
-}    
+	//auto 67 = 10;
+}	
 
 int32 fuck_you_chatgpt()
 {
-    int8? x = 1;
+	int8? x = 1;
 
-    int16 x =1;
-    uint64 y = 68;
-    auto h = 48;
-    mut int8 x = 4;
-    mut int16 y =5;
-    mut auto b =38;
+	int16 x =1;
+	uint64 y = 68;
+	auto h = 48;
+	mut int8 x = 4;
+	mut int16 y =5;
+	mut auto b =38;
 
-    // Currently print is hardcoded, this is just a funciton for developing until stdlib is developed
-    print("Print is working\n");
+	// Currently print is hardcoded, this is just a funciton for developing until stdlib is developed
+	print("Print is working\n");
 
-    // this is line 13
-    //shouldnt
-    //int8 = 8;
-    //uint4 x = 76;
-    //mut x = 5;
-    //auto auto = 57;
+	// this is line 13
+	//shouldnt
+	//int8 = 8;
+	//uint4 x = 76;
+	//mut x = 5;
+	//auto auto = 57;
 
-    //int8 o = ;
-    //mut int8 "SEXY BOY" = 4;
+	//int8 o = ;
+	//mut int8 "SEXY BOY" = 4;
 
-    //auto 67 = 10;
-}    
+	//auto 67 = 10;
+}	

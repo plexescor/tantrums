@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 project(tantrums
-    LANGUAGES C CXX
+	LANGUAGES C CXX
 )
 
 set(CMAKE_CXX_STANDARD 23)
@@ -18,46 +18,47 @@ message(STATUS "LLVM_LIBRARY_DIRS: ${LLVM_LIBRARY_DIRS}")
 
 # Executable
 add_executable(tantrums
-    src/main.cpp
-    src/lexer/lexer.cpp
-    src/parser/parser.cpp
-    src/llvm/codegen.cpp
-    src/compiler/compiler.cpp
+	src/main.cpp
+	src/lexer/lexer.cpp
+	src/parser/parser.cpp
+	src/llvm/codegen.cpp
+	src/compiler/compiler.cpp
+	src/symbol/symbolTable.cpp
 )
 
 # Headers
 target_include_directories(tantrums
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${LLVM_INCLUDE_DIRS}
+	PRIVATE
+		${CMAKE_CURRENT_SOURCE_DIR}/include
+		${LLVM_INCLUDE_DIRS}
 )
 
 # LLVM library location
 target_link_directories(tantrums
-    PRIVATE
-        ${LLVM_LIBRARY_DIRS}
+	PRIVATE
+		${LLVM_LIBRARY_DIRS}
 )
 
 # LLVM 22 on your system is monolithic:
 # llvm-config --libs core irreader support
 # -> -lLLVM-22
 target_link_libraries(tantrums
-    PRIVATE
-        LLVM-22
+	PRIVATE
+		LLVM-22
 )
 
 # LLVM compile definitions
 target_compile_definitions(tantrums
-    PRIVATE
-        ${LLVM_DEFINITIONS}
+	PRIVATE
+		${LLVM_DEFINITIONS}
 )
 
 if(MSVC)
 
-    target_compile_options(tantrums PRIVATE)
+	target_compile_options(tantrums PRIVATE)
 
 else()
 
-    target_compile_options(tantrums PRIVATE)
+	target_compile_options(tantrums PRIVATE)
 
 endif()

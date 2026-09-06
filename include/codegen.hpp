@@ -12,25 +12,25 @@
 
 class CodeGenerator
 {
-    public:
-        CodeGenerator(std::vector<ASTNode>& nodes);
-        void generate(bool emitIr);
-        llvm::LLVMContext* getLlvmContext();
-        llvm::IRBuilder<>* getLlvmBuilder();
-        llvm::Module* getLlvmModule();
-        llvm::TargetMachine* getTargetMachine();
+	public:
+		CodeGenerator(std::vector<ASTNode>& nodes);
+		void generate(bool emitIr);
+		llvm::LLVMContext* getLlvmContext();
+		llvm::IRBuilder<>* getLlvmBuilder();
+		llvm::Module* getLlvmModule();
+		llvm::TargetMachine* getTargetMachine();
 
-    private:
-        void generatePrint(const PrintNode& printNode);
-        void generateFunction(const FunctionDeclarationNode& functionDeclNode);
+	private:
+		void generatePrint(const PrintNode& printNode);
+		void generateFunction(const FunctionDeclarationNode& functionDeclNode);
 
-    private:
-        llvm::FunctionCallee printfFunc;
-        llvm::LLVMContext context;
-        llvm::IRBuilder<> builder;
-        llvm::TargetMachine* targetMachine;
-        std::unique_ptr<llvm::Module> module;
+	private:
+		llvm::FunctionCallee printfFunc;
+		llvm::LLVMContext context;
+		llvm::IRBuilder<> builder;
+		llvm::TargetMachine* targetMachine;
+		std::unique_ptr<llvm::Module> module;
 
-        std::vector<ASTNode> nodes;
-        size_t currentNode = 0;
+		std::vector<ASTNode> nodes;
+		size_t currentNode = 0;
 };
