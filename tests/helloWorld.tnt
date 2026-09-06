@@ -1,4 +1,23 @@
-// Just understanding parser
-print("[Tantrum .tnt File] Hello World\n");
-print(46);
-print(67.67);
+//should pass
+int8 x = 1;
+int16 x =1;
+uint64 y = 68;
+auto h = 48;
+mut int8 x = 4;
+mut int16 y =5;
+
+
+
+
+
+// this is line 12
+//shouldnt
+int = 8;
+uint13 x = 76;
+mut x = 5;
+a = 57;
+b =38
+int8 o = 
+int8 mut x = 4;
+
+auto auto = 10;

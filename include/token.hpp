@@ -19,6 +19,7 @@ enum class TokenType
     TOKEN_FLOAT64,
     TOKEN_STRING,
     TOKEN_BOOL,
+    TOKEN_MUT,
     TOKEN_ERROR,
     TOKEN_TRY,
     TOKEN_CATCH,
@@ -75,6 +76,7 @@ enum class TokenType
     TOKEN_WHILE,
     TOKEN_BREAK,
     TOKEN_CONTINUE,
+    TOKEN_AUTO,
     TOKEN_AMPERSAND_OPERATOR,
     TOKEN_END_OF_FILE
 };
@@ -84,6 +86,7 @@ constexpr std::string_view tokenTypeToString(TokenType type)
     switch (type)
     {
         // Types & Keywords
+        case TokenType::TOKEN_AUTO: return "auto";
         case TokenType::TOKEN_INT8: return "int8";
         case TokenType::TOKEN_INT16: return "int16";
         case TokenType::TOKEN_INT32: return "int32";
@@ -112,18 +115,15 @@ constexpr std::string_view tokenTypeToString(TokenType type)
         case TokenType::TOKEN_IF: return "if";
         case TokenType::TOKEN_ELSE: return "else";
         case TokenType::TOKEN_FOR: return "for";
+        case TokenType::TOKEN_MUT: return "mut";
         case TokenType::TOKEN_WHILE: return "while";
         case TokenType::TOKEN_BREAK: return "break";
         case TokenType::TOKEN_CONTINUE: return "continue";
-
-        // Identifiers & Literals
         case TokenType::TOKEN_IDENTIFIER: return "<identifier>";
         case TokenType::TOKEN_INTEGER_LITERAL: return "<integer literal>";
         case TokenType::TOKEN_FLOAT_LITERAL: return "<float literal>";
         case TokenType::TOKEN_BOOL_LITERAL: return "<bool literal>";
         case TokenType::TOKEN_STRING_LITERAL: return "<string literal>";
-
-        // Delimiters & Punctuation
         case TokenType::TOKEN_SINGLE_QUOTE: return "'";
         case TokenType::TOKEN_DOUBLE_QUOTE: return "\"";
         case TokenType::TOKEN_LEFT_PARENTHESIS: return "(";
@@ -134,8 +134,6 @@ constexpr std::string_view tokenTypeToString(TokenType type)
         case TokenType::TOKEN_RIGHT_BRACKET: return "]";
         case TokenType::TOKEN_COMMA: return ",";
         case TokenType::TOKEN_SEMICOLON: return ";";
-
-        // Operators
         case TokenType::TOKEN_ASSIGNMENT_OPERATOR: return "=";
         case TokenType::TOKEN_EQUALITY_OPERATOR: return "==";
         case TokenType::TOKEN_NOT_EQUALITY_OPERATOR: return "!=";
@@ -161,8 +159,6 @@ constexpr std::string_view tokenTypeToString(TokenType type)
         case TokenType::TOKEN_MODULE_NAMESPACE_CROSS_OPERATOR: return "!->";
         case TokenType::TOKEN_METHOD_MEMBER_ACCESS_OPERATOR: return "->";
         case TokenType::TOKEN_CHAIN_OPERATOR: return "<-->";
-
-        // EOF & Default
         case TokenType::TOKEN_END_OF_FILE: return "<EOF>";
         default: return "<unknown>";
     }
@@ -172,6 +168,8 @@ constexpr std::string_view tokenTypeToEnumName(TokenType type)
 {
     switch (type)
     {
+        case TokenType::TOKEN_AUTO: return "TOKEN_AUTO";
+        case TokenType::TOKEN_MUT: return "TOKEN_MUT";
         case TokenType::TOKEN_INT8: return "TOKEN_INT8";
         case TokenType::TOKEN_INT16: return "TOKEN_INT16";
         case TokenType::TOKEN_INT32: return "TOKEN_INT32";

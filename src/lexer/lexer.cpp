@@ -135,6 +135,14 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
                     {
                         tokens.push_back(Token(TokenType::TOKEN_HEAP, word, currentLine));
                     }
+                    else if (word == "auto")
+                    {
+                        tokens.push_back(Token(TokenType::TOKEN_AUTO, word, currentLine));
+                    }
+                    else if (word == "mut")
+                    {
+                        tokens.push_back(Token(TokenType::TOKEN_MUT, word, currentLine));
+                    }
                     else if (word == "use")
                     {
                         tokens.push_back(Token(TokenType::TOKEN_USE, word, currentLine));

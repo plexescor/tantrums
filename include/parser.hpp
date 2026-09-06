@@ -12,20 +12,26 @@ class Parser
         Parser(const std::vector<Token>& tokens);
         ~Parser() = default;
         std::vector<ASTNode> parse();
+        bool hasError() const { return hadError; }
     
     private:
+        bool isDeclKeyword(TokenType type);
         Token& expect(std::vector<TokenType> expectedTypes);
         Token& expect(TokenType type);
         Token& advance();
         Token& peek();
         Token& current();
+        void synchronize();
 
-        ASTNode parseStatement();
-        ASTNode parsePrint();
+        std::optional<ASTNode> parseStatement();
+        std::optional<ASTNode> parsePrint();
+        std::optional<ASTNode> parseVariableDeclaration();
 
         std::vector<TokenType> getPossibleTokens_Print();
+        std::vector<TokenType> getPossibleTokens_Decl();
     private:
         std::vector<ASTNode> ast_Vector;
         std::vector<Token> tokens;
         size_t currentPosition = 0;
+        bool hadError = false;
 };

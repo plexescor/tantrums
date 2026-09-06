@@ -38,16 +38,18 @@ The long-term goal is to make Tantrums capable enough to port a real application
 
 ## Current status
 
-Nothing
+- Lexer lexing
+- Parser parsing (partially tho)
+- CodeGenerator codegen-ing
 
 ---
 
 ## Roadmap
 
-- `[-]` **Lexer** — tokenize source text into a token stream
-- `[ ]` **Parser** — recursive descent, build an AST
+- `[X]` **Lexer** — tokenize source text into a token stream
+- `[-]` **Parser** — recursive descent, build an AST
 - `[ ]` **Type checker** — resolve and validate types in static mode
-- `[ ]` **LLVM IR codegen** — walk the AST, emit LLVM IR, run the optimizer
+- `[-]` **LLVM IR codegen** — walk the AST, emit LLVM IR, run the optimizer
 - `[ ]` **Module System** — Make a module / impl system
 - `[ ]` **FFI** — call C libs from tantrums
 - `[ ]` **Basic standard library** — I/O, strings, basic collections
