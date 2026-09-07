@@ -1,5 +1,6 @@
 # Tantrums
-> This is my beloved child, treat it with care...
+> This is my beloved child, treat it with care... 
+
 A compiled programming language with an LLVM backend, written from scratch in C++23.
 
 > **This language is not trying to be the next C, C++, or Rust.**
