@@ -42,6 +42,7 @@ struct FunctionDeclarationNode
 	TypeNode type;
 	std::string name;
 
+	bool returnsNull = false;
 	bool isHeap   = false;
 	bool isIo	 = false;
 	bool isThrows = false;

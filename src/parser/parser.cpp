@@ -170,6 +170,7 @@ bool Parser::isAnnotationKeyword(TokenType type)
 std::optional<ASTNode> Parser::parseFunctionDeclaration()
 {
 	// When this gets called, the currentPosition is at a DeclKeyword, we need to check one by one
+	bool returnsNull = false;
 	bool isHeap = false;
 	bool isIo = false;
 	bool isThrows = false;
@@ -188,13 +189,14 @@ std::optional<ASTNode> Parser::parseFunctionDeclaration()
 			case TokenType::TOKEN_IO:	 isIo	 = true; break;
 			case TokenType::TOKEN_THROWS: isThrows = true; break;
 			case TokenType::TOKEN_PURE:   isPure   = true; break;
+			case TokenType::TOKEN_NULLABLE_OPERATOR: returnsNull = true; break;
 			default: typeToken = current(); // return type keyword capture
 		}
 		advance();
 	}
 	// advance();
 	// now its at type/auto
-	Token token;
+	Token token = current();
 	// Token typeToken = current();
 	if (typeToken.type == TokenType::TOKEN_AUTO) isAuto = true;
 
@@ -220,16 +222,17 @@ std::optional<ASTNode> Parser::parseFunctionDeclaration()
 	expect(TokenType::TOKEN_RIGHT_BRACE);
 
 	// debug: dump what we parsed
-	std::println("[FunctionDecl] name={} returnType={} mut={} heap={} io={} throws={} pure={}",
+	std::println("[FunctionDecl] name={} returnType={} null={} mut={} heap={} io={} throws={} pure={}",
 		nameToken.value,
 		typeToken.value,
-		isMut, isHeap, isIo, isThrows, isPure
+		returnsNull, isMut, isHeap, isIo, isThrows, isPure
 	); 
 
 	return ASTNode {
 	FunctionDeclarationNode {
 		.type	 = TypeNode { .name = typeToken.value, .isNullable = false },
 		.name	 = nameToken.value,
+		.returnsNull = returnsNull,
 		.isHeap   = isHeap,
 		.isIo	 = isIo,
 		.isThrows = isThrows,

@@ -1,5 +1,5 @@
 # Tantrums
-
+> This is my beloved child, treat it with care...
 A compiled programming language with an LLVM backend, written from scratch in C++23.
 
 > **This language is not trying to be the next C, C++, or Rust.**
@@ -48,7 +48,7 @@ The long-term goal is to make Tantrums capable enough to port a real application
 
 - `[X]` **Lexer** — tokenize source text into a token stream
 - `[-]` **Parser** — recursive descent, build an AST
-- `[ ]` **Type checker** — resolve and validate types in static mode
+- `[-]` **Type checker** — resolve and validate types in static mode
 - `[-]` **LLVM IR codegen** — walk the AST, emit LLVM IR, run the optimizer
 - `[ ]` **Module System** — Make a module / impl system
 - `[ ]` **FFI** — call C libs from tantrums
