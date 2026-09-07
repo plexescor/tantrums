@@ -1,12 +1,12 @@
 void testFunc()
 {
-	int32 ffjfj = 49;
+	int64 ffjfj = -49;
 }
 
-int32? main()
+int32 main()
 {
 	int32 x = 5;
-	//int64 y = 5;
+	int64 y = 5;
 	
 	auto z = "67";
 	auto a = 59.4;

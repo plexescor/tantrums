@@ -72,6 +72,7 @@ int main(int argc, char* argv[])
 
 			TypeChecker typeChecker(astNodes);
 			bool result = typeChecker.check();
+			if (!result) exit(1);
 
 			std::println("Generating IR for: {} : Progress: {}%", argv[i], 40);
 			std::unique_ptr<CodeGenerator> codegen = std::make_unique<CodeGenerator>(astNodes);

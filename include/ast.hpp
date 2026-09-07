@@ -4,6 +4,16 @@
 #include <variant>
 #include <cstdint>
 
+struct UntypedInt  
+{ 
+	int64_t value; 
+};  
+
+struct UntypedFloat 
+{ 
+	double value; 
+};
+
 // forward declarations
 struct VariableDeclarationNode;
 struct PrintNode;
@@ -16,19 +26,12 @@ using ASTNode = std::variant<VariableDeclarationNode, PrintNode, FunctionDeclara
 struct LiteralNode
 {
 	std::variant<
-		int8_t,
-		int16_t,
-		int32_t,
-		int64_t,
-		uint8_t,
-		uint16_t,
-		uint32_t,
-		uint64_t,
-		float,
-		double,
+		UntypedInt,
+		UntypedFloat,
 		std::string,
 		bool
 	> value;
+	bool isNegative = false;
 };
 
 struct TypeNode 

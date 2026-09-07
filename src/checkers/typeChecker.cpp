@@ -1,6 +1,7 @@
 #include <vector>
 #include <map>
 #include <print>
+#include <unordered_set>
 #include <variant>
 
 #include "typeChecker.hpp"
@@ -10,6 +11,19 @@
 template<class... Ts> struct Overloaded : Ts... { using Ts::operator()...; };
 
 static SymbolTable symbols;
+
+bool TypeChecker::fitsInType(int64_t value, const std::string& type)
+{
+    if (type == "int8")   return value >= INT8_MIN  && value <= INT8_MAX;
+    if (type == "int16")  return value >= INT16_MIN && value <= INT16_MAX;
+    if (type == "int32")  return value >= INT32_MIN && value <= INT32_MAX;
+    if (type == "int64")  return true; // int64_t can hold anything being parsed
+    if (type == "uint8")  return value >= 0 && value <= UINT8_MAX;
+    if (type == "uint16") return value >= 0 && value <= UINT16_MAX;
+    if (type == "uint32") return value >= 0 && value <= UINT32_MAX;
+    if (type == "uint64") return value >= 0; // can't represent > INT64_MAX via stoll anyway
+    return false; // int literal into other type is denied
+}
 
 TypeChecker::TypeChecker(std::vector<ASTNode>& astNodes)
     : astNodes(astNodes)
@@ -76,11 +90,50 @@ void TypeChecker::checkVariableDeclaration(VariableDeclarationNode& varDecl)
 
     // Resolve the type of RHS, 
     std::string resolvedType = resolveLiteralType(varDecl.value);
+    std::string declaredType = varDecl.type.name;
 
     //Check if its decl type is auto and if yes patch it
-    if (varDecl.type.name == "auto")
+    if (declaredType == "auto")
     {
-        varDecl.type.name = resolvedType;
+        if (resolvedType == "untyped_int")   varDecl.type.name = "int32";  // default
+        if (resolvedType == "untyped_float") varDecl.type.name = "double"; // default
+        if (resolvedType == "string")        varDecl.type.name = "string";
+        if (resolvedType == "bool")          varDecl.type.name = "bool";
+        symbols.declare(varDecl.name, varDecl.type.name, varDecl.isMutable);
+        return;
+    }
+
+    // fit-check for UntypedInt
+    if (resolvedType == "untypedInt")
+    {
+        int64_t raw = std::get<UntypedInt>(varDecl.value.value).value;
+        if (varDecl.value.isNegative) raw *= -1;
+        std::println("[Debug] Value of {} is {}", varDecl.name, raw);
+        if (!fitsInType(raw, declaredType))
+        {
+            errorBuffer.push_back(std::format(
+                "Value '{}' does not fit in type '{}'", raw, declaredType
+            ));
+            return;
+        }
+        symbols.declare(varDecl.name, declaredType, varDecl.isMutable);
+        return;
+    }
+
+    if (resolvedType == "untypedFloat")
+    {
+        static const std::unordered_set<std::string> floatTypes = { "float32", "float64" };
+        // if (varDecl.value.isNegative) *= -1;
+        // std::println("[Debug] Value of {} is {}", varDecl.name, raw);
+        if (!floatTypes.contains(declaredType))
+        {
+            errorBuffer.push_back(std::format(
+                "Cannot assign float literal to '{}'", declaredType
+            ));
+            return;
+        }
+        symbols.declare(varDecl.name, declaredType, varDecl.isMutable);
+        return;
     }
 
     if (varDecl.type.name != resolvedType)
@@ -110,23 +163,10 @@ void TypeChecker::flushErrorBuffer()
 
 std::string TypeChecker::resolveLiteralType(LiteralNode &node)
 {
-    return std::visit(Overloaded
-    {
-        [](int8_t)    { return "int8"; },
-        [](int16_t)   { return "int16"; },
-        [](int32_t)   { return "int32"; },
-        [](int64_t)   { return "int64"; },
-
-        [](uint8_t)   { return "uint8"; },
-        [](uint16_t)  { return "uint16"; },
-        [](uint32_t)  { return "uint32"; },
-        [](uint64_t)  { return "uint64"; },
-
-        [](float)     { return "float"; },
-        [](double)    { return "double"; },
-
-        [](const std::string&) { return "string"; },
-        [](bool)      { return "bool"; }
-
+    return std::visit(Overloaded {
+        [](UntypedInt&)   { return "untypedInt"; },
+        [](UntypedFloat&) { return "untypedFloat"; },
+        [](std::string&)  { return "string"; },
+        [](bool)          { return "bool"; },
     }, node.value);
 }

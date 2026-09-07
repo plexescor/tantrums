@@ -138,12 +138,14 @@ std::optional<ASTNode> Parser::parsePrint()
 	expect(TokenType::TOKEN_RIGHT_PARENTHESIS);
 	expect(TokenType::TOKEN_SEMICOLON);
 
+	// return ASTNode ( PrintNode { .value = parseLiteral(finalToken)});
+
 	if (finalToken.type == TokenType::TOKEN_STRING_LITERAL)
-		return ASTNode( PrintNode { .value = LiteralNode { .value = finalToken.value } } );
+		return ASTNode( PrintNode { .value = parseLiteral(finalToken ) } );
 	else if (finalToken.type == TokenType::TOKEN_INTEGER_LITERAL)
-		return ASTNode( PrintNode { .value = LiteralNode { .value = std::stoi(finalToken.value) } } );
+		return ASTNode( PrintNode { .value = parseLiteral(finalToken ) } );
 	else if (finalToken.type == TokenType::TOKEN_FLOAT_LITERAL)
-		return ASTNode( PrintNode { .value = LiteralNode { .value = std::stod(finalToken.value) } } );
+		return ASTNode( PrintNode { .value = parseLiteral(finalToken ) } );
 
 	hadError = true;
 	std::println(
@@ -251,6 +253,7 @@ std::optional<ASTNode> Parser::parseVariableDeclaration()
 	bool isMutable = false;
 	bool isAuto = false;
 	bool isNullable = false;
+	bool isNegative = false;
 
 	Token token = current();
 
@@ -279,8 +282,15 @@ std::optional<ASTNode> Parser::parseVariableDeclaration()
 
 	expect(TokenType::TOKEN_ASSIGNMENT_OPERATOR);
 
+	if (current().type == TokenType::TOKEN_MINUS_OPERATOR)
+	{
+		isNegative = true;
+		advance();
+	}
+
+	// Use currently same as what print supports
 	Token litVal = expect(getPossibleTokens_Print());
-	LiteralNode lit = parseLiteral(litVal);
+	LiteralNode lit = parseLiteral(litVal, isNegative);
 
 	expect(TokenType::TOKEN_SEMICOLON);
 
@@ -294,32 +304,42 @@ std::optional<ASTNode> Parser::parseVariableDeclaration()
 		});
 }
 
-LiteralNode Parser::parseLiteral(const Token& tok)
+LiteralNode Parser::parseLiteral(const Token& tok, bool isNegative)
 {
-	// To do fix make this shit better
-	// i am not doing it because its 11:24pm
-    switch (tok.type)
+	switch (tok.type)
     {
         case TokenType::TOKEN_INTEGER_LITERAL:
-            // int32 for now
-            return LiteralNode { .value = static_cast<int32_t>(std::stoi(tok.value)) };
+            return LiteralNode { .value = UntypedInt { std::stoll(tok.value) }, .isNegative = isNegative };
 
         case TokenType::TOKEN_FLOAT_LITERAL:
-            // if it has 'f' suffix, float, else double
-            if (tok.value.back() == 'f')
-                return LiteralNode { .value = std::stof(tok.value) };
-            return LiteralNode { .value = std::stod(tok.value) };
+            return LiteralNode { .value = UntypedFloat { std::stod(tok.value) }, .isNegative = isNegative };
 
         case TokenType::TOKEN_STRING_LITERAL:
             return LiteralNode { .value = tok.value };
 
         case TokenType::TOKEN_BOOL_LITERAL:
             return LiteralNode { .value = tok.value == "true" };
-
-		// just convert to string and do a formality
-        default: return LiteralNode { .value = std::string(tok.value) };
     }
+	return LiteralNode { .value = tok.value };
 }
+
+// LiteralNode Parser::parseLiteral(const Token& tok)
+// {
+// 	switch (tok.type)
+//     {
+//         case TokenType::TOKEN_INTEGER_LITERAL:
+//             return LiteralNode { .value = UntypedInt { std::stoll(tok.value) } };
+
+//         case TokenType::TOKEN_FLOAT_LITERAL:
+//             return LiteralNode { .value = UntypedFloat { std::stod(tok.value) } };
+
+//         case TokenType::TOKEN_STRING_LITERAL:
+//             return LiteralNode { .value = tok.value };
+
+//         case TokenType::TOKEN_BOOL_LITERAL:
+//             return LiteralNode { .value = tok.value == "true" };
+//     }
+// }
 
 std::optional<ASTNode> Parser::parseStatement()
 {

@@ -16,6 +16,7 @@ class TypeChecker
         void checkVariableDeclaration(VariableDeclarationNode& varDecl);
 
     private:    
+        bool fitsInType(int64_t value, const std::string& type);
         void flushErrorBuffer();
         std::string resolveLiteralType(LiteralNode& node);
     private:
