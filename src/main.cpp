@@ -82,6 +82,9 @@ int main(int argc, char* argv[])
 			auto duration__ = std::chrono::duration_cast<std::chrono::milliseconds>(end__ - end_);
 			std::println("IR generation took: {} ms", duration__.count());
 
+			//Skip compilation if only ir
+			if (emitIR) return;
+
 			// Todo: make using cli args
 			Compiler compiler(codegen.get());
 			std::println("Compiling file: {} : Progress: {}%", argv[i], 60);

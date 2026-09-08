@@ -45,6 +45,65 @@ llvm::TargetMachine* CodeGenerator::getTargetMachine()
 	return targetMachine;
 }
 
+llvm::Type* CodeGenerator::getLlvmType(std::string& returnType)
+{
+	if (returnType == "int8") return builder.getInt8Ty();
+    else if (returnType == "int16") return builder.getInt16Ty();
+    else if (returnType == "int32") return builder.getInt32Ty();
+    else if (returnType == "int64") return builder.getInt64Ty();
+    else if (returnType == "uint8") return builder.getInt8Ty();
+    else if (returnType == "uint16") return builder.getInt16Ty();
+    else if (returnType == "uint32") return builder.getInt32Ty();
+    else if (returnType == "uint64") return builder.getInt64Ty();
+	else if (returnType == "float32") return builder.getFloatTy();
+	else if (returnType == "float64") return builder.getDoubleTy();
+	else if (returnType == "string")  return builder.getPtrTy();
+    else if (returnType == "bool") return builder.getInt1Ty();
+    else if (returnType == "void") return builder.getVoidTy();
+
+	std::println(stderr, "[Codegen] Unknown type: '{}'", returnType);
+    assert(false && "[Codegen] Unknown type");
+    return nullptr;
+}
+
+llvm::Value* CodeGenerator::getLlvmValue(const LiteralNode& literal, const std::string& resolvedType)
+{
+    return std::visit(Overloaded
+    {
+        [&](const UntypedInt& raw) -> llvm::Value*
+        {
+            int64_t value = literal.isNegative ? -raw.value : raw.value;
+            if (resolvedType == "int8")   return llvm::ConstantInt::get(builder.getInt8Ty(),  value, true);
+            if (resolvedType == "int16")  return llvm::ConstantInt::get(builder.getInt16Ty(), value, true);
+            if (resolvedType == "int32")  return llvm::ConstantInt::get(builder.getInt32Ty(), value, true);
+            if (resolvedType == "int64")  return llvm::ConstantInt::get(builder.getInt64Ty(), value, true);
+            if (resolvedType == "uint8")  return llvm::ConstantInt::get(builder.getInt8Ty(),  value, false);
+            if (resolvedType == "uint16") return llvm::ConstantInt::get(builder.getInt16Ty(), value, false);
+            if (resolvedType == "uint32") return llvm::ConstantInt::get(builder.getInt32Ty(), value, false);
+            if (resolvedType == "uint64") return llvm::ConstantInt::get(builder.getInt64Ty(), value, false);
+            assert(false && "[Codegen] UntypedInt with non-integer resolved type");
+            return nullptr;
+        },
+        [&](const UntypedFloat& raw) -> llvm::Value*
+        {
+            double value = literal.isNegative ? -raw.value : raw.value;
+            if (resolvedType == "float32") return llvm::ConstantFP::get(builder.getFloatTy(),  value);
+            if (resolvedType == "float64") return llvm::ConstantFP::get(builder.getDoubleTy(), value);
+            assert(false && "[Codegen] UntypedFloat with non-float resolved type");
+            return nullptr;
+        },
+        [&](const std::string& raw) -> llvm::Value*
+        {
+            return builder.CreateGlobalString(raw);
+        },
+        [&](const bool raw) -> llvm::Value*
+        {
+            return llvm::ConstantInt::get(builder.getInt1Ty(), raw ? 1 : 0);
+        },
+    }, literal.value);
+
+	return nullptr;
+}
 void CodeGenerator::generate(bool emitIr)
 {
 	// Boiler plate for llvm
@@ -133,29 +192,8 @@ void CodeGenerator::generateFunction(const FunctionDeclarationNode& functionDecl
 	bool isMut	= functionDeclNode.isMut;
 	bool isAuto   = functionDeclNode.isAuto;
 
-   llvm::Type* result;
-
-	if (returnType == "int8")
-		result = builder.getInt8Ty();
-	else if (returnType == "int16")
-		result = builder.getInt16Ty();
-	else if (returnType == "int32")
-		result = builder.getInt32Ty();
-	else if (returnType == "int64")
-		result = builder.getInt64Ty();
-	else if (returnType == "uint8")
-		result = builder.getInt8Ty();
-	else if (returnType == "uint16")
-		result = builder.getInt16Ty();
-	else if (returnType == "uint32")
-		result = builder.getInt32Ty();
-	else if (returnType == "uint64")
-		result = builder.getInt64Ty();
-	else if (returnType == "bool")
-		result = builder.getInt1Ty();
-	else if (returnType == "void")
-		result = builder.getVoidTy();
-	else assert (false && "[Debug] Invalid type");
+   llvm::Type* result = getLlvmType(returnType);
+//    std::println(stderr, "[Debug] returnType='{}' -> result={}", returnType, (void*)result);
 
 	// No arg and variadic arg support for now
 	llvm::FunctionType* functionType = llvm::FunctionType::get
@@ -191,8 +229,11 @@ void CodeGenerator::generateFunction(const FunctionDeclarationNode& functionDecl
 			{ 
 				generatePrint(print); 
 			},
-			[](const VariableDeclarationNode&)
-			{},
+			// Single threaded so fine, though my reasoning can be wrong
+			[this, &function](const VariableDeclarationNode& varDecl)
+			{
+				generateVariable(varDecl, function);
+			},
 
 			// }, //Functinos inside functinos! Subject unexplained removal
 			// currently disabled
@@ -210,6 +251,22 @@ void CodeGenerator::generateFunction(const FunctionDeclarationNode& functionDecl
 		builder.CreateRet(llvm::ConstantInt::get(result, 0));
 }
 
+void CodeGenerator::generateVariable(const VariableDeclarationNode& varDeclNode
+									, llvm::Function* function)
+{
+	std::string type_Str = varDeclNode.type.name;
+	std::string name = varDeclNode.name;
+	llvm::Type* type = getLlvmType(type_Str);
+
+	llvm::IRBuilder<> tempBuilder(&function->getEntryBlock(), function->getEntryBlock().begin());
+    llvm::AllocaInst* alloca = tempBuilder.CreateAlloca(type, nullptr, name);
+
+	llvm::Value* initialValue = getLlvmValue(varDeclNode.value, type_Str);
+
+	builder.CreateStore(initialValue, alloca);
+	namedValues_Variables[name] = alloca;
+	
+}
 void CodeGenerator::generatePrint(const PrintNode& printNode)
 {
 	std::visit([this](const auto& literalVal)

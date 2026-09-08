@@ -11,4 +11,5 @@ int32 main()
 	auto z = "67";
 	auto a = 59.4;
 	auto b = 49;
+	print("Working Fine!\n");
 }

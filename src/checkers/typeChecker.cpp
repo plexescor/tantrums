@@ -47,7 +47,7 @@ bool TypeChecker::check()
         }, node);
     }
     flushErrorBuffer();
-    return false;
+    return errorBuffer.empty();
 }
 
 void TypeChecker::checkFunctionDeclaration(FunctionDeclarationNode& fnDecl)
@@ -95,8 +95,8 @@ void TypeChecker::checkVariableDeclaration(VariableDeclarationNode& varDecl)
     //Check if its decl type is auto and if yes patch it
     if (declaredType == "auto")
     {
-        if (resolvedType == "untyped_int")   varDecl.type.name = "int32";  // default
-        if (resolvedType == "untyped_float") varDecl.type.name = "double"; // default
+        if (resolvedType == "untypedInt")   varDecl.type.name = "int32";  // default
+        if (resolvedType == "untypedFloat") varDecl.type.name = "float64"; // default
         if (resolvedType == "string")        varDecl.type.name = "string";
         if (resolvedType == "bool")          varDecl.type.name = "bool";
         symbols.declare(varDecl.name, varDecl.type.name, varDecl.isMutable);

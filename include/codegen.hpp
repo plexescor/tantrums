@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <cstdint>
+#include <map>
 
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/IRBuilder.h>
@@ -21,10 +22,15 @@ class CodeGenerator
 		llvm::TargetMachine* getTargetMachine();
 
 	private:
+		llvm::Type* getLlvmType(std::string& returnType);
+		llvm::Value* getLlvmValue(const LiteralNode& literal, const std::string& resolvedType);
 		void generatePrint(const PrintNode& printNode);
 		void generateFunction(const FunctionDeclarationNode& functionDeclNode);
+		void generateVariable(const VariableDeclarationNode& varDeclNode, llvm::Function* function);
 
 	private:
+		std::map<std::string, llvm::AllocaInst*> namedValues_Variables;
+
 		llvm::FunctionCallee printfFunc;
 		llvm::LLVMContext context;
 		llvm::IRBuilder<> builder;
