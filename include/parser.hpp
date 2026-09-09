@@ -30,6 +30,11 @@ class Parser
 		std::optional<ASTNode> parseVariableDeclaration();
 		std::optional<ASTNode> parseFunctionDeclaration();
 
+		std::optional<ExprNode> parseExpr();
+		std::optional<ExprNode> parsePrimary();
+		std::optional<ExprNode> parseUnary();
+		std::optional<ExprNode> parseTerm();
+
 		std::vector<TokenType> getPossibleTokens_Print();
 		std::vector<TokenType> getPossibleTokens_Decl();
 	private:

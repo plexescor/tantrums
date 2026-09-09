@@ -4,6 +4,7 @@
 #include <format>
 #include <vector>
 #include <print>
+#include <memory>
 
 #include "parser.hpp"
 #include "token.hpp"
@@ -245,6 +246,145 @@ std::optional<ASTNode> Parser::parseFunctionDeclaration()
 	}};
 }
 
+std::optional<ExprNode> Parser::parseExpr()
+{
+	// Will handle + and -
+	// Will need to change this to proper checks
+	std::optional<ExprNode> left = parseUnary();
+
+	while (current().type == TokenType::TOKEN_PLUS_OPERATOR || current().type == TokenType::TOKEN_MINUS_OPERATOR)
+	{
+		TokenType operation = current().type;
+		advance();
+		std::optional<ExprNode> right = parseTerm();
+		if (left.has_value() && right.has_value())
+		left = ExprNode
+		(
+			BinaryExprNode
+			{
+				.operation = operation,
+				.leftNode = std::make_unique<ExprNode>(std::move(left.value())),
+				.rightNode = std::make_unique<ExprNode>(std::move(right.value()))
+			}
+		);
+	}
+	return left;
+}
+
+std::optional<ExprNode> Parser::parsePrimary()
+{
+	Token token = current();
+
+	std::optional<ExprNode> finalNode;
+
+	switch (token.type)
+	{
+		case TokenType::TOKEN_INTEGER_LITERAL:
+			advance();
+			finalNode = ExprNode( LiteralNode { .value = UntypedInt { std::stoll(token.value) }  });
+			break;
+
+		case TokenType::TOKEN_FLOAT_LITERAL:
+			advance();
+			finalNode = ExprNode( LiteralNode { .value = UntypedFloat { std::stod(token.value) } } );
+			break;
+
+		case TokenType::TOKEN_STRING_LITERAL:
+			advance();
+			finalNode = ExprNode( LiteralNode { .value = token.value } );
+			break;
+
+		case TokenType::TOKEN_BOOL_LITERAL:
+			bool b;
+			if (token.value == "true") b = true;
+			else b = false;
+
+			advance();
+			finalNode = ExprNode( LiteralNode { .value = b} );
+			break;
+
+		case TokenType::TOKEN_IDENTIFIER:
+			advance();
+			finalNode = ExprNode( IdentifierNode { .name = token.value } );
+			break;
+		
+		// if int32 a = (42*3)+5;
+		case TokenType::TOKEN_LEFT_PARENTHESIS:
+			advance();
+
+			//Will handle all other advances automatically
+			std::optional<ExprNode> innerExpr = parseExpr();
+
+			expect(TokenType::TOKEN_RIGHT_PARENTHESIS);
+			if (innerExpr.has_value()) return innerExpr;
+
+	}
+
+	if (finalNode.has_value()) return finalNode;
+
+	// If it didnt match anything
+	hadError = true;
+	std::println(stderr, "[Parser Error] Unexprected Token '{}' at line number: {}", token.value, token.line);
+	// Consuming the bad token so other parts aren;t affected by it
+	advance();
+	return std::nullopt;
+}
+
+// TODO: handle negative numbers here ~ 9 Sept 2026 @ 5:41pm, ~plexescor
+std::optional<ExprNode> Parser::parseUnary()
+{
+	TokenType operation;
+	std::optional<ExprNode> operand;
+	// IMplemnt expression handling TODO
+	// Only support -ve for now
+	if (current().type == TokenType::TOKEN_MINUS_OPERATOR)
+	{
+		operation = current().type;
+		advance();
+		operand = parseUnary();
+
+		if (operand.has_value())
+		return ExprNode
+		(
+			UnaryExprNode
+			{
+				.operation = operation,
+				.operand = std::make_unique<ExprNode>(std::move(operand.value())),
+			}
+		);
+	}
+
+	return parsePrimary();
+}
+
+std::optional<ExprNode> Parser::parseTerm()
+{
+	// Will handle * and /
+	
+	std::optional<ExprNode> left = parseUnary();
+
+	// TODO, implemnet pointer handling using *
+	while (current().type == TokenType::TOKEN_STAR_OPERATOR || current().type == TokenType::TOKEN_DIVISION_OPERATOR)
+	{
+		TokenType operation = current().type;
+		advance();
+		std::optional<ExprNode> right = parseUnary();
+		if (left.has_value() && right.has_value())
+		left = ExprNode
+		(
+			BinaryExprNode
+			{
+				.operation = operation,
+				.leftNode = std::make_unique<ExprNode>(std::move(left.value())),
+				.rightNode = std::make_unique<ExprNode>(std::move(right.value()))
+			}
+		);
+	}
+
+	return left;
+
+}
+
 std::optional<ASTNode> Parser::parseVariableDeclaration()
 {
 	// i know i am sometimes calling advance without capturing return
@@ -282,25 +422,22 @@ std::optional<ASTNode> Parser::parseVariableDeclaration()
 
 	expect(TokenType::TOKEN_ASSIGNMENT_OPERATOR);
 
-	if (current().type == TokenType::TOKEN_MINUS_OPERATOR)
-	{
-		isNegative = true;
-		advance();
-	}
+	// if (current().type == TokenType::TOKEN_MINUS_OPERATOR)
+	// {
+	// 	isNegative = true;
+	// 	advance();
+	// }
 
-	// Use currently same as what print supports
-	Token litVal = expect(getPossibleTokens_Print());
-	LiteralNode lit = parseLiteral(litVal, isNegative);
+	std::optional<ExprNode> expression = parseExpr();
 
-	expect(TokenType::TOKEN_SEMICOLON);
-
+	if (!expression.has_value()) return std::nullopt;
 	return ASTNode(
 		VariableDeclarationNode { 
 			.isMutable = isMutable,
 			.type = TypeNode { .name = typeToken.value, .isNullable = isNullable}, 
 			.isAuto = isAuto,
 			.name = nameToken.value,
-			.value = lit
+			.value = std::move(*expression)
 		});
 }
 

@@ -70,9 +70,9 @@ int main(int argc, char* argv[])
 			auto duration_ = std::chrono::duration_cast<std::chrono::milliseconds>(end_ - end);
 			std::println("Parsing took: {} ms", duration_.count());
 
-			TypeChecker typeChecker(astNodes);
-			bool result = typeChecker.check();
-			if (!result) exit(1);
+			// TypeChecker typeChecker(astNodes);
+			// bool result = typeChecker.check();
+			// if (!result) exit(1);
 
 			std::println("Generating IR for: {} : Progress: {}%", argv[i], 40);
 			std::unique_ptr<CodeGenerator> codegen = std::make_unique<CodeGenerator>(astNodes);

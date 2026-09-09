@@ -3,6 +3,9 @@
 #include <string>
 #include <variant>
 #include <cstdint>
+#include <memory>
+
+#include "token.hpp"
 
 struct UntypedInt  
 { 
@@ -19,9 +22,22 @@ struct VariableDeclarationNode;
 struct PrintNode;
 struct FunctionDeclarationNode;
 
+// int32 x = y; its a var, function calls handled
+struct IdentifierNode;
+
+// just a literal, used to be the only in legacy
+struct LiteralNode;
+
+// two terms(each term can consist of more subterms and so on) with an op
+// 2 + (2*2)
+struct BinaryExprNode;
+
+// for nullable and -ve conversion and logical NOT
+struct UnaryExprNode;
+
 // ASTNode defined early so structs can use it
 using ASTNode = std::variant<VariableDeclarationNode, PrintNode, FunctionDeclarationNode>;
-
+using ExprNode = std::variant<LiteralNode, IdentifierNode, BinaryExprNode, UnaryExprNode>;
 
 struct LiteralNode
 {
@@ -34,11 +50,34 @@ struct LiteralNode
 	bool isNegative = false;
 };
 
+struct IdentifierNode
+{
+	std::string name;
+};
+
+struct BinaryExprNode
+{
+	TokenType operation;
+
+	// as we dont use classes approach, we need to do this shi-
+	std::unique_ptr<ExprNode> leftNode;
+	std::unique_ptr<ExprNode> rightNode;
+};
+
+struct UnaryExprNode
+{
+	TokenType operation;
+	// Operand refers to a ExprNode on which operation is done on such as
+	// in case of -x, op is "-" and operand is "x"
+	std::unique_ptr<ExprNode> operand;	
+};
+
 struct TypeNode 
 {
 	std::string name;
 	bool isNullable = false; // the ? op
 };
+
 
 struct FunctionDeclarationNode
 {
@@ -63,11 +102,11 @@ struct VariableDeclarationNode
 	bool isAuto;
 	std::string name;
 
-	LiteralNode value;
+	ExprNode value;
 };
 
 // For printing/debugging until stdlib is implemnetd
 struct PrintNode 
 {
-	LiteralNode value;
+	ExprNode value;
 };
