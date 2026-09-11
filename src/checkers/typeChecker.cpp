@@ -3,6 +3,7 @@
 #include <print>
 #include <unordered_set>
 #include <variant>
+#include <string>
 
 #include "typeChecker.hpp"
 #include "symbolTable.hpp"
@@ -28,6 +29,26 @@ bool TypeChecker::fitsInType(int64_t value, const std::string& type)
 TypeChecker::TypeChecker(std::vector<ASTNode>& astNodes)
     : astNodes(astNodes)
 {
+    // Initialize valid int and float types set
+    validIntTypes = 
+    { 
+        "int8",
+        "int16",
+        "int32",
+        "int64",
+        "uint8",
+        "uint16",
+        "uint32",
+        "uint64",
+        "untypedInt"
+    };
+
+    validFloatTypes = 
+    {
+        "float32",
+        "float64",
+        "untypedFloat"
+    };
 }
 
 bool TypeChecker::check()
@@ -48,6 +69,99 @@ bool TypeChecker::check()
     }
     flushErrorBuffer();
     return errorBuffer.empty();
+}
+
+std::string TypeChecker::resolveExprType(const ExprNode& node)
+{
+    return std::visit(Overloaded
+    {
+        [](const LiteralNode& literal) -> std::string
+        {
+            return std::visit(Overloaded
+            {
+                [](const UntypedInt&)   { return std::string("untypedInt"); },
+                [](const UntypedFloat&) { return std::string("untypedFloat"); },
+                [](const std::string&)  { return std::string("string"); },
+                [](bool)                { return std::string("bool"); }
+            }, literal.value);
+        },
+
+        [this](const IdentifierNode& identifierNode) -> std::string
+        {
+            return resolveIdentifier(identifierNode);
+        },
+
+        [this](const BinaryExprNode& binaryNode) -> std::string
+        {
+            // Resolve the left and right side nodes
+            std::string left = resolveExprType(*binaryNode.leftNode);
+            std::string right = resolveExprType(*binaryNode.rightNode);
+
+            // Check if any error occured, return immed if yes
+            if (left == "error" || right == "error") return "error";
+
+            if (validIntTypes.contains(left) && validIntTypes.contains(right))
+            {
+                // Return the type which is more concrete
+                if (left != "untypedInt") return left;
+                else if (right != "untypedInt") return right;
+
+                // return this if both are not concrete
+                return "untypedInt";
+            }
+            
+            if (validFloatTypes.contains(left) && validFloatTypes.contains(right))
+            {
+                // Return the type which is more concrete
+                if (left != "untypedFloat") return left;
+                else if (right != "untypedFloat") return right;
+
+                // return this if both are not concrete
+                return "untypedFloat";
+            }
+
+            errorBuffer.push_back(
+                std::format("Type mismatch in binary expression, "
+                "left side deduced as '{}', right side deduced as '{}'",
+                left, right
+            ));
+            return "error";
+        },
+
+        [this](const UnaryExprNode& unaryNode) -> std::string
+        {
+            std::string operandType = resolveExprType(*unaryNode.operand);
+            if (operandType == "error") return "error";
+
+            if (validIntTypes.contains(operandType) || validFloatTypes.contains(operandType))
+            {
+                return operandType;
+            }
+            else // if (operandType == "string" || operandType == "bool")
+            {
+                errorBuffer.push_back(std::format("Cannot perform a unary operation on a {}", operandType));
+                return "error";
+            }
+        }
+    }, node);
+}
+
+std::string TypeChecker::resolveIdentifier(const IdentifierNode& node)
+{
+    std::string name = node.name;
+
+    std::optional<std::pair<std::string, bool>> type = symbols.lookup(name);
+    std::string type_S;
+    if (type.has_value())
+    {
+        type_S = type.value().first;
+    }
+    else if (type_S.empty())
+    {
+        errorBuffer.push_back(std::format("Identifier {} does not exist in the current scope!", name));
+        return "error";
+    }
+    return type_S;
 }
 
 void TypeChecker::checkFunctionDeclaration(FunctionDeclarationNode& fnDecl)
@@ -89,7 +203,7 @@ void TypeChecker::checkVariableDeclaration(VariableDeclarationNode& varDecl)
     }
 
     // Resolve the type of RHS, 
-    std::string resolvedType = resolveLiteralType(varDecl.value);
+    std::string resolvedType = resolveExprType(varDecl.value);
     std::string declaredType = varDecl.type.name;
 
     //Check if its decl type is auto and if yes patch it
@@ -103,54 +217,54 @@ void TypeChecker::checkVariableDeclaration(VariableDeclarationNode& varDecl)
         return;
     }
 
-    // fit-check for UntypedInt
+    // just call it quits if something *deeper* failed
+    if (resolvedType == "error") return;
+
     if (resolvedType == "untypedInt")
     {
-        int64_t raw = std::get<UntypedInt>(varDecl.value.value).value;
-        if (varDecl.value.isNegative) raw *= -1;
-        std::println("[Debug] Value of {} is {}", varDecl.name, raw);
-        if (!fitsInType(raw, declaredType))
+        if (!validIntTypes.contains(declaredType))
         {
-            errorBuffer.push_back(std::format(
-                "Value '{}' does not fit in type '{}'", raw, declaredType
+            errorBuffer.push_back(
+                std::format("Type mismatch between declared '{}' and resolved '{}' variable types",
+                    declaredType, resolvedType
             ));
             return;
         }
-        symbols.declare(varDecl.name, declaredType, varDecl.isMutable);
-        return;
+
+        symbols.declare(varDecl.name, varDecl.type.name, varDecl.isMutable);
     }
 
-    if (resolvedType == "untypedFloat")
+    else if (resolvedType == "untypedFloat")
     {
-        static const std::unordered_set<std::string> floatTypes = { "float32", "float64" };
-        // if (varDecl.value.isNegative) *= -1;
-        // std::println("[Debug] Value of {} is {}", varDecl.name, raw);
-        if (!floatTypes.contains(declaredType))
+        if (!validFloatTypes.contains(declaredType))
         {
-            errorBuffer.push_back(std::format(
-                "Cannot assign float literal to '{}'", declaredType
+            errorBuffer.push_back(
+                std::format("Type mismatch between declared '{}' and resolved '{}' variable types",
+                    declaredType, resolvedType
             ));
             return;
         }
-        symbols.declare(varDecl.name, declaredType, varDecl.isMutable);
-        return;
+
+        symbols.declare(varDecl.name, varDecl.type.name, varDecl.isMutable);
     }
 
-    if (varDecl.type.name != resolvedType)
+    // covers string and bools
+    else if (declaredType == resolvedType)
     {
-        errorBuffer.push_back(std::format(
-            "Type mismatch: identifier '{}' declared as '{}' but resolved type is '{}'",
-            varDecl.name, varDecl.type.name, resolvedType
-        ));
-        return;
+        symbols.declare(varDecl.name, varDecl.type.name, varDecl.isMutable);
     }
 
-    std::println(
-        "[Debug]: Identifier: '{}', Declared Type: '{}', Resolved Type: '{}'",
-        varDecl.name, varDecl.type.name, resolvedType
-    );
-    
-    symbols.declare(varDecl.name, varDecl.type.name, varDecl.isMutable);
+    else
+    {
+        errorBuffer.push_back(
+            std::format(
+                "Type mismatch between declared '{}' and resolved '{}' variable types",
+                declaredType,
+                resolvedType
+            )
+        );
+        return;
+    }
 }
 
 void TypeChecker::flushErrorBuffer()

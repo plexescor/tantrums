@@ -23,7 +23,7 @@ class CodeGenerator
 
 	private:
 		llvm::Type* getLlvmType(std::string& returnType);
-		llvm::Value* getLlvmValue(const LiteralNode& literal, const std::string& resolvedType);
+		llvm::Value* generateExpr(const ExprNode& exprNode, const std::string& resolvedType);
 		void generatePrint(const PrintNode& printNode);
 		void generateFunction(const FunctionDeclarationNode& functionDeclNode);
 		void generateVariable(const VariableDeclarationNode& varDeclNode, llvm::Function* function);

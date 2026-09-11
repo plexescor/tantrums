@@ -1,15 +1,14 @@
 void testFunc()
 {
-	int64 ffjfj = -49;
+	int64 ffjfj = 9 + 18;
 }
 
 int32 main()
 {
-	int32 x = 5;
-	int64 y = 5;
+	int32 x = -5 * 1;
+	int64 y = 5 / 48 + (47488+38*37);
 	
-	auto z = "67";
-	auto a = 59.4;
-	auto b = 49;
-	print("Working Fine!\n");
+	float64 a = 59.4;
+	int8 b = 99;
+	//print("Working Fine!\n");
 }

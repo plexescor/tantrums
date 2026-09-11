@@ -3,9 +3,11 @@
 #include <chrono>
 #include <vector>
 
+#pragma warning(push, 0)
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Module.h>
+#pragma warning(pop)
 
 #include "ast.hpp"
 #include "token.hpp"

@@ -1,12 +1,13 @@
 #include <iostream>
 
+#pragma warning(push, 0)
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/CodeGen.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Support/Program.h>
-
+#pragma warning(pop)
 #include "compiler.hpp"
 #include "codegen.hpp"
 
@@ -44,26 +45,44 @@ void Compiler::compile(std::filesystem::path outputPath)
 void Compiler::link(std::filesystem::path outputPath)
 {
 	outputPath_Executable = outputPath;
-	#ifdef _WIN32
-		auto lld = llvm::sys::findProgramByName("lld-link");
-	#else
-		auto lld = llvm::sys::findProgramByName("ld.lld");
-	#endif
 
-	if (!lld)
+#ifdef _WIN32
+	auto linker = llvm::sys::findProgramByName("link.exe");
+	if (!linker)
+	{
+		std::cerr << "link.exe not found" << std::endl;
+		return;
+	}
+
+	std::string objPath = std::filesystem::absolute(outputPath_Object).string();
+	std::string outArg = "/OUT:" + outputPath.string() + ".exe";
+
+	std::vector<llvm::StringRef> args =
+	{
+		*linker,
+		objPath,
+		outArg.c_str(),
+		"/DEFAULTLIB:msvcrt",
+		"/DEFAULTLIB:ucrt",
+		"/DEFAULTLIB:vcruntime",
+		"/SUBSYSTEM:CONSOLE",
+		"/MACHINE:X64"
+	};
+
+#else
+	auto linker = llvm::sys::findProgramByName("ld.lld");
+	if (!linker)
 	{
 		std::cerr << "lld not found" << std::endl;
 		return;
 	}
 
-	// Dont care about windows
 	std::string objPath = std::filesystem::absolute(outputPath_Object).string();
 	std::string outPath = outputPath.string();
 
-	//Copied from clang
-	std::vector<llvm::StringRef> args = 
+	std::vector<llvm::StringRef> args =
 	{
-		*lld,
+		*linker,
 		"--hash-style=gnu",
 		"--build-id",
 		"--eh-frame-hdr",
@@ -86,9 +105,10 @@ void Compiler::link(std::filesystem::path outputPath)
 		"/usr/lib64/gcc/x86_64-pc-linux-gnu/16/crtendS.o",
 		"/usr/lib64/crtn.o"
 	};
+#endif
 
 	std::string error;
-	llvm::sys::ExecuteAndWait(*lld, args, std::nullopt, {}, 0, 0, &error);
+	llvm::sys::ExecuteAndWait(*linker, args, std::nullopt, {}, 0, 0, &error);
 
 	if (!error.empty())
 		std::cerr << error << std::endl;

@@ -3,15 +3,16 @@
 #include <string>
 #include <print>
 
+#pragma warning(push, 0)
 #include <llvm/TargetParser/Host.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Module.h>
-
 #include <llvm/MC/TargetRegistry.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetOptions.h>
 #include <llvm/Support/TargetSelect.h>
+#pragma warning(pop)
 
 #include "codegen.hpp"
 #include "ast.hpp"
@@ -23,7 +24,7 @@ CodeGenerator::CodeGenerator(std::vector<ASTNode>& nodes)
 	: builder(context),
 	  module(std::make_unique<llvm::Module>("tantrums", context))
 {
-	this->nodes = nodes;
+	this->nodes = std::move(nodes);
 }
 
 llvm::LLVMContext* CodeGenerator::getLlvmContext()
@@ -66,43 +67,97 @@ llvm::Type* CodeGenerator::getLlvmType(std::string& returnType)
     return nullptr;
 }
 
-llvm::Value* CodeGenerator::getLlvmValue(const LiteralNode& literal, const std::string& resolvedType)
+llvm::Value* CodeGenerator::generateExpr(const ExprNode& exprNode, const std::string& resolvedType)
 {
-    return std::visit(Overloaded
-    {
-        [&](const UntypedInt& raw) -> llvm::Value*
-        {
-            int64_t value = literal.isNegative ? -raw.value : raw.value;
-            if (resolvedType == "int8")   return llvm::ConstantInt::get(builder.getInt8Ty(),  value, true);
-            if (resolvedType == "int16")  return llvm::ConstantInt::get(builder.getInt16Ty(), value, true);
-            if (resolvedType == "int32")  return llvm::ConstantInt::get(builder.getInt32Ty(), value, true);
-            if (resolvedType == "int64")  return llvm::ConstantInt::get(builder.getInt64Ty(), value, true);
-            if (resolvedType == "uint8")  return llvm::ConstantInt::get(builder.getInt8Ty(),  value, false);
-            if (resolvedType == "uint16") return llvm::ConstantInt::get(builder.getInt16Ty(), value, false);
-            if (resolvedType == "uint32") return llvm::ConstantInt::get(builder.getInt32Ty(), value, false);
-            if (resolvedType == "uint64") return llvm::ConstantInt::get(builder.getInt64Ty(), value, false);
-            assert(false && "[Codegen] UntypedInt with non-integer resolved type");
-            return nullptr;
-        },
-        [&](const UntypedFloat& raw) -> llvm::Value*
-        {
-            double value = literal.isNegative ? -raw.value : raw.value;
-            if (resolvedType == "float32") return llvm::ConstantFP::get(builder.getFloatTy(),  value);
-            if (resolvedType == "float64") return llvm::ConstantFP::get(builder.getDoubleTy(), value);
-            assert(false && "[Codegen] UntypedFloat with non-float resolved type");
-            return nullptr;
-        },
-        [&](const std::string& raw) -> llvm::Value*
-        {
-            return builder.CreateGlobalString(raw);
-        },
-        [&](const bool raw) -> llvm::Value*
-        {
-            return llvm::ConstantInt::get(builder.getInt1Ty(), raw ? 1 : 0);
-        },
-    }, literal.value);
+	return std::visit(Overloaded
+	{
+		[this, resolvedType](const LiteralNode& litNode) -> llvm::Value*
+		{
+			return std::visit(Overloaded
+			{
+				[this, resolvedType](const UntypedInt& untypedInt) -> llvm::Value*
+				{
+					std::string resolved = resolvedType;
+					return llvm::ConstantInt::get(getLlvmType(resolved), untypedInt.value);
+				},
 
-	return nullptr;
+				[this, resolvedType](const UntypedFloat& untypedFloat) -> llvm::Value*
+				{
+					std::string resolved = resolvedType;
+					return llvm::ConstantFP::get(getLlvmType(resolved), untypedFloat.value);
+				},
+
+				[this](const std::string& string) -> llvm::Value*
+				{
+					return builder.CreateGlobalString(string);
+				},
+
+				[this, resolvedType](const bool& boolean) -> llvm::Value*
+				{
+					std::string resolved = resolvedType;
+					return llvm::ConstantInt::get(getLlvmType(resolved), boolean ? 1 : 0);
+				}
+			}, litNode.value);
+		},
+
+		[this, resolvedType](const IdentifierNode& identifierNode) -> llvm::Value*
+		{
+			std::string resolved = resolvedType;
+			return builder.CreateLoad(getLlvmType(resolved), namedValues_Variables[identifierNode.name]);
+		},
+
+		[this, resolvedType](const BinaryExprNode& binaryNode) -> llvm::Value*
+		{
+			std::string resolved = resolvedType;
+
+			llvm::Value* left = generateExpr(*binaryNode.leftNode, resolved);
+			llvm::Value* right = generateExpr(*binaryNode.rightNode, resolved);
+
+			TokenType opToken = binaryNode.operation;
+
+			bool isFloat = resolvedType == "float32" || resolvedType == "float64" ? true : false;
+			switch (opToken)
+			{
+				case TokenType::TOKEN_PLUS_OPERATOR:
+					return isFloat ? builder.CreateFAdd(left, right)
+								   : builder.CreateAdd(left, right);
+							       break;
+
+				case TokenType::TOKEN_MINUS_OPERATOR:
+					return isFloat ? builder.CreateFSub(left, right)
+								   : builder.CreateSub(left, right);
+								   break;
+
+				case TokenType::TOKEN_STAR_OPERATOR:
+					return isFloat ? builder.CreateFMul(left, right)
+								   : builder.CreateMul(left, right);
+							       break;
+				
+				case TokenType::TOKEN_DIVISION_OPERATOR:
+					return isFloat ? builder.CreateFDiv(left, right)
+								   : builder.CreateSDiv(left, right);
+							       break;
+				
+				default:
+					return nullptr;
+			}
+		},
+
+		[this, resolvedType](const UnaryExprNode& unaryNode) -> llvm::Value*
+		{
+			std::string resolved = resolvedType;
+			llvm::Value* operand = generateExpr(*unaryNode.operand, resolved);
+
+			if (resolvedType == "float32" || resolvedType == "float64")
+			{
+				return builder.CreateFNeg(operand);
+			}
+			else
+			{
+				return builder.CreateNeg(operand);
+			}
+		}
+	}, exprNode);
 }
 void CodeGenerator::generate(bool emitIr)
 {
@@ -261,87 +316,92 @@ void CodeGenerator::generateVariable(const VariableDeclarationNode& varDeclNode
 	llvm::IRBuilder<> tempBuilder(&function->getEntryBlock(), function->getEntryBlock().begin());
     llvm::AllocaInst* alloca = tempBuilder.CreateAlloca(type, nullptr, name);
 
-	llvm::Value* initialValue = getLlvmValue(varDeclNode.value, type_Str);
+	llvm::Value* initialValue = generateExpr(varDeclNode.value, type_Str);
 
+	if (!initialValue)
+	{
+		std::println("Error");
+		return;
+	}
 	builder.CreateStore(initialValue, alloca);
 	namedValues_Variables[name] = alloca;
 	
 }
 void CodeGenerator::generatePrint(const PrintNode& printNode)
 {
-	std::visit([this](const auto& literalVal)
-	{
-		using T = std::decay_t<decltype(literalVal)>;
+	// std::visit([this](const auto& literalVal)
+	// {
+	// 	using T = std::decay_t<decltype(literalVal)>;
 
-		if constexpr (std::is_same_v<T, std::string>)
-		{
-			llvm::Value* str = builder.CreateGlobalString(literalVal);
-			builder.CreateCall(printfFunc, {str});
-		}
-		else if constexpr (std::is_same_v<T, int8_t>)
-		{
-			llvm::Value* fmt = builder.CreateGlobalString("%hhd\n");
-			llvm::Value* val = llvm::ConstantInt::get(builder.getInt8Ty(), literalVal);
-			builder.CreateCall(printfFunc, {fmt, val});
-		}
-		else if constexpr (std::is_same_v<T, int16_t>)
-		{
-			llvm::Value* fmt = builder.CreateGlobalString("%hd\n");
-			llvm::Value* val = llvm::ConstantInt::get(builder.getInt16Ty(), literalVal);
-			builder.CreateCall(printfFunc, {fmt, val});
-		}
-		else if constexpr (std::is_same_v<T, int32_t>)
-		{
-			llvm::Value* fmt = builder.CreateGlobalString("%d\n");
-			llvm::Value* val = llvm::ConstantInt::get(builder.getInt32Ty(), literalVal);
-			builder.CreateCall(printfFunc, {fmt, val});
-		}
-		else if constexpr (std::is_same_v<T, int64_t>)
-		{
-			llvm::Value* fmt = builder.CreateGlobalString("%lld\n");
-			llvm::Value* val = llvm::ConstantInt::get(builder.getInt64Ty(), literalVal);
-			builder.CreateCall(printfFunc, {fmt, val});
-		}
-		else if constexpr (std::is_same_v<T, uint8_t>)
-		{
-			llvm::Value* fmt = builder.CreateGlobalString("%hhu\n");
-			llvm::Value* val = llvm::ConstantInt::get(builder.getInt8Ty(), literalVal);
-			builder.CreateCall(printfFunc, {fmt, val});
-		}
-		else if constexpr (std::is_same_v<T, uint16_t>)
-		{
-			llvm::Value* fmt = builder.CreateGlobalString("%hu\n");
-			llvm::Value* val = llvm::ConstantInt::get(builder.getInt16Ty(), literalVal);
-			builder.CreateCall(printfFunc, {fmt, val});
-		}
-		else if constexpr (std::is_same_v<T, uint32_t>)
-		{
-			llvm::Value* fmt = builder.CreateGlobalString("%u\n");
-			llvm::Value* val = llvm::ConstantInt::get(builder.getInt32Ty(), literalVal);
-			builder.CreateCall(printfFunc, {fmt, val});
-		}
-		else if constexpr (std::is_same_v<T, uint64_t>)
-		{
-			llvm::Value* fmt = builder.CreateGlobalString("%llu\n");
-			llvm::Value* val = llvm::ConstantInt::get(builder.getInt64Ty(), literalVal);
-			builder.CreateCall(printfFunc, {fmt, val});
-		}
-		else if constexpr (std::is_same_v<T, double>)
-		{
-			llvm::Value* fmt = builder.CreateGlobalString("%f\n");
-			llvm::Value* val = llvm::ConstantFP::get(builder.getDoubleTy(), literalVal);
-			builder.CreateCall(printfFunc, {fmt, val});
-		}
-		else if constexpr (std::is_same_v<T, float>)
-		{
-			llvm::Value* fmt = builder.CreateGlobalString("%f\n");
-			llvm::Value* val = llvm::ConstantFP::get(builder.getDoubleTy(), static_cast<double>(literalVal));
-			builder.CreateCall(printfFunc, {fmt, val});
-		}
-		else if constexpr (std::is_same_v<T, bool>)
-		{
-			llvm::Value* str = builder.CreateGlobalString(literalVal ? "true\n" : "false\n");
-			builder.CreateCall(printfFunc, {str});
-		}
-	}, printNode.value.value);
+	// 	if constexpr (std::is_same_v<T, std::string>)
+	// 	{
+	// 		llvm::Value* str = builder.CreateGlobalString(literalVal);
+	// 		builder.CreateCall(printfFunc, {str});
+	// 	}
+	// 	else if constexpr (std::is_same_v<T, int8_t>)
+	// 	{
+	// 		llvm::Value* fmt = builder.CreateGlobalString("%hhd\n");
+	// 		llvm::Value* val = llvm::ConstantInt::get(builder.getInt8Ty(), literalVal);
+	// 		builder.CreateCall(printfFunc, {fmt, val});
+	// 	}
+	// 	else if constexpr (std::is_same_v<T, int16_t>)
+	// 	{
+	// 		llvm::Value* fmt = builder.CreateGlobalString("%hd\n");
+	// 		llvm::Value* val = llvm::ConstantInt::get(builder.getInt16Ty(), literalVal);
+	// 		builder.CreateCall(printfFunc, {fmt, val});
+	// 	}
+	// 	else if constexpr (std::is_same_v<T, int32_t>)
+	// 	{
+	// 		llvm::Value* fmt = builder.CreateGlobalString("%d\n");
+	// 		llvm::Value* val = llvm::ConstantInt::get(builder.getInt32Ty(), literalVal);
+	// 		builder.CreateCall(printfFunc, {fmt, val});
+	// 	}
+	// 	else if constexpr (std::is_same_v<T, int64_t>)
+	// 	{
+	// 		llvm::Value* fmt = builder.CreateGlobalString("%lld\n");
+	// 		llvm::Value* val = llvm::ConstantInt::get(builder.getInt64Ty(), literalVal);
+	// 		builder.CreateCall(printfFunc, {fmt, val});
+	// 	}
+	// 	else if constexpr (std::is_same_v<T, uint8_t>)
+	// 	{
+	// 		llvm::Value* fmt = builder.CreateGlobalString("%hhu\n");
+	// 		llvm::Value* val = llvm::ConstantInt::get(builder.getInt8Ty(), literalVal);
+	// 		builder.CreateCall(printfFunc, {fmt, val});
+	// 	}
+	// 	else if constexpr (std::is_same_v<T, uint16_t>)
+	// 	{
+	// 		llvm::Value* fmt = builder.CreateGlobalString("%hu\n");
+	// 		llvm::Value* val = llvm::ConstantInt::get(builder.getInt16Ty(), literalVal);
+	// 		builder.CreateCall(printfFunc, {fmt, val});
+	// 	}
+	// 	else if constexpr (std::is_same_v<T, uint32_t>)
+	// 	{
+	// 		llvm::Value* fmt = builder.CreateGlobalString("%u\n");
+	// 		llvm::Value* val = llvm::ConstantInt::get(builder.getInt32Ty(), literalVal);
+	// 		builder.CreateCall(printfFunc, {fmt, val});
+	// 	}
+	// 	else if constexpr (std::is_same_v<T, uint64_t>)
+	// 	{
+	// 		llvm::Value* fmt = builder.CreateGlobalString("%llu\n");
+	// 		llvm::Value* val = llvm::ConstantInt::get(builder.getInt64Ty(), literalVal);
+	// 		builder.CreateCall(printfFunc, {fmt, val});
+	// 	}
+	// 	else if constexpr (std::is_same_v<T, double>)
+	// 	{
+	// 		llvm::Value* fmt = builder.CreateGlobalString("%f\n");
+	// 		llvm::Value* val = llvm::ConstantFP::get(builder.getDoubleTy(), literalVal);
+	// 		builder.CreateCall(printfFunc, {fmt, val});
+	// 	}
+	// 	else if constexpr (std::is_same_v<T, float>)
+	// 	{
+	// 		llvm::Value* fmt = builder.CreateGlobalString("%f\n");
+	// 		llvm::Value* val = llvm::ConstantFP::get(builder.getDoubleTy(), static_cast<double>(literalVal));
+	// 		builder.CreateCall(printfFunc, {fmt, val});
+	// 	}
+	// 	else if constexpr (std::is_same_v<T, bool>)
+	// 	{
+	// 		llvm::Value* str = builder.CreateGlobalString(literalVal ? "true\n" : "false\n");
+	// 		builder.CreateCall(printfFunc, {str});
+	// 	}
+	// }, printNode.value);
 }

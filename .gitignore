@@ -1,2 +1,5 @@
 build
+out
 .vscode
+CMakeUserPresets.json
+.clangd

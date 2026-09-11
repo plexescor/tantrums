@@ -31,6 +31,7 @@ bool Parser::isDeclKeyword(TokenType type)
 		case TokenType::TOKEN_FLOAT64:
 		case TokenType::TOKEN_BOOL:
 		case TokenType::TOKEN_AUTO:
+		case TokenType::TOKEN_STRING:
 		case TokenType::TOKEN_MUT:
 		case TokenType::TOKEN_HEAP:
 		case TokenType::TOKEN_VOID:
@@ -250,7 +251,7 @@ std::optional<ExprNode> Parser::parseExpr()
 {
 	// Will handle + and -
 	// Will need to change this to proper checks
-	std::optional<ExprNode> left = parseUnary();
+	std::optional<ExprNode> left = parseTerm();
 
 	while (current().type == TokenType::TOKEN_PLUS_OPERATOR || current().type == TokenType::TOKEN_MINUS_OPERATOR)
 	{
@@ -431,6 +432,7 @@ std::optional<ASTNode> Parser::parseVariableDeclaration()
 	std::optional<ExprNode> expression = parseExpr();
 
 	if (!expression.has_value()) return std::nullopt;
+	expect(TokenType::TOKEN_SEMICOLON);
 	return ASTNode(
 		VariableDeclarationNode { 
 			.isMutable = isMutable,
@@ -538,7 +540,7 @@ std::vector<ASTNode> Parser::parse()
 			synchronize();
 		}
 	}
-	return ast_Vector;
+	return std::move(ast_Vector);
 }
 
 std::vector<TokenType> Parser::getPossibleTokens_Print()

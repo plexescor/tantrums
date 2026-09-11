@@ -40,13 +40,8 @@ target_link_directories(tantrums
 		${LLVM_LIBRARY_DIRS}
 )
 
-# LLVM 22 on your system is monolithic:
-# llvm-config --libs core irreader support
-# -> -lLLVM-22
-target_link_libraries(tantrums
-	PRIVATE
-		LLVM-22
-)
+llvm_map_components_to_libnames(LLVM_LIBS core support irreader native)
+target_link_libraries(tantrums PRIVATE ${LLVM_LIBS})
 
 # LLVM compile definitions
 target_compile_definitions(tantrums
