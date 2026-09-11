@@ -24,7 +24,7 @@ The long-term goal is to make Tantrums capable enough to port a real application
 - Not a production language
 - Not competing with Rust, Zig, Go, or anything else
 - Not trying to have a large ecosystem or community
-- Not AI-assisted
+- Not AI Written
 
 ---
 
@@ -33,34 +33,75 @@ The long-term goal is to make Tantrums capable enough to port a real application
 - **Compiled to native code** via LLVM — not interpreted, not transpiled
 - **Statically typed** as the primary mode — the compiler knows every type at compile time
 - **Native LLVM types** in static mode — no NaN-boxing, no unified value wrapper, no overhead
-- **Small implementation** — the compiler source should be readable in one sitting
 
 ---
 
 ## Current status
 
-- Lexer lexing
-- Parser parsing (partially tho)
-- CodeGenerator codegen-ing
+The compiler currently supports a complete end-to-end pipeline from source text to native machine code:
+
+- **Lexer**: Tokenizes source text, tracks line and column coordinates, handles keywords, primitive types (`int8`–`int64`, `uint8`–`uint64`, `float32`, `float64`, `bool`, `string`, `void`), operators, literals, and comments (`//`).
+- **Parser**: Recursive descent parser producing an AST for:
+  - Function declarations (return types, nullability `?`, and annotations).
+  - Variable declarations (`mut`, explicit types, `auto`, nullability).
+  - Expressions: binary arithmetic (`+`, `-`, `*`, `/`) with operator precedence, unary negation (`-`), parenthesized sub-expressions `(...)`, typed literals, and variable identifiers.
+  - Error recovery and synchronization (`synchronize()`).
+- **LLVM IR Codegen**:
+  - Target machine setup with host triple and data layout.
+  - Emits native LLVM types (`i8`–`i64`, `float`, `double`, `i1`, `ptr`, `void`).
+  - Stack allocations in function entry basic blocks (`alloca`).
+  - Integer and floating-point arithmetic emission (`add`/`fadd`, `sub`/`fsub`, `mul`/`fmul`, `sdiv`/`fdiv`, `neg`/`fneg`).
+  - Variable load and store operations.
+- **Compiler & Native Linker**:
+  - Emits native machine code object files (`output.o`) via LLVM `PassManager`.
+  - Links directly to a native executable via MSVC `link.exe` (on Windows) or `ld.lld` (on Linux).
+- **Driver**:
+  - Multi-threaded file compilation (parallel worker threads per input file, <- just cosmetic).
+  - Per-phase timing reports for lexing, parsing, IR generation, compiling, and linking.
 
 ---
 
-## Roadmap
+## Working example
 
-- `[X]` **Lexer** — tokenize source text into a token stream
-- `[-]` **Parser** — recursive descent, build an AST
-- `[-]` **Type checker** — resolve and validate types in static mode
-- `[-]` **LLVM IR codegen** — walk the AST, emit LLVM IR, run the optimizer
-- `[ ]` **Module System** — Make a module / impl system
-- `[ ]` **FFI** — call C libs from tantrums
-- `[ ]` **Basic standard library** — I/O, strings, basic collections
-- `[ ]` **Port first real feature** from my target application
+The compiler currently compiles `.tnt` files with functions, variable declarations, and arithmetic expressions:
+
+```tnt
+void testFunc()
+{
+	int64 ffjfj = 9 + 18;
+}
+
+int32 main()
+{
+	int32 x = -5 * 1;
+	int64 y = 5 / 48 + (47488 + 38 * 37);
+
+	float64 a = 59.4;
+	int8 b = 99;
+}
+```
 
 ---
 
-## Building
+## Implementation status
 
-**Requirements:** CMake 3.15+, a C++23 compiler (GCC 13+, Clang 16+, or MSVC 2022+)
+- `[x]` **Lexer** — Tokenize source code, locations, keywords, literals, operators, comments
+- `[x]` **Parser** — Recursive descent AST for functions, variables, expressions with precedence
+- `[x]` **Arithmetic Expression** — Binary operations (`+`, `-`, `*`, `/`), unary `-`, and parenthesized grouping
+- `[x]` **LLVM IR Codegen** — Native types, entry block `alloca`, arithmetic IR emission, loads/stores
+- `[x]` **Object Emission & Linking** — Emit `.o` and link native executables (`link.exe` / `ld.lld`)
+- `[-]` **Type Checker & Symbol Table** — Scoped symbol table, literal bounds validation, and type deduction (WIP)
+
+---
+
+## Building and running
+
+**Requirements:**
+- CMake 3.15+
+- A C++23 compiler (GCC 13+, Clang 16+, or MSVC 2022+)
+- LLVM development libraries (components: `core`, `support`, `irreader`, `native`)
+
+### Build
 
 ```bash
 git clone https://github.com/plexescor/tantrums
@@ -69,8 +110,19 @@ cmake -B build
 cmake --build build
 ```
 
+### Run
+
+```bash
+# Dump generated LLVM IR to stdout:
+./build/Debug/tantrums tests/helloWorld.tnt --emit-llvm-ir
+
+# Compile to object file and link into native executable:
+./build/Debug/tantrums tests/helloWorld.tnt
+```
+
 ---
 
 ## License
 
 GPL-3.0
+
