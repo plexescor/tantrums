@@ -85,12 +85,12 @@ struct FunctionDeclarationNode
 	std::string name;
 
 	bool returnsNull = false;
-	bool isHeap   = false;
+	bool isHeap	= false;
 	bool isIo	 = false;
 	bool isThrows = false;
-	bool isPure   = false;
+	bool isPure	= false;
 	bool isMut	= false;
-	bool isAuto   = false;
+	bool isAuto	= false;
 
 	std::vector<ASTNode> body;
 };
@@ -109,4 +109,5 @@ struct VariableDeclarationNode
 struct PrintNode 
 {
 	ExprNode value;
+	std::string resolvedType;
 };

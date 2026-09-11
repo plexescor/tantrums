@@ -36,7 +36,7 @@ bool Parser::isDeclKeyword(TokenType type)
 		case TokenType::TOKEN_HEAP:
 		case TokenType::TOKEN_VOID:
 		case TokenType::TOKEN_IO:		
-		case TokenType::TOKEN_THROWS:   
+		case TokenType::TOKEN_THROWS:	
 		case TokenType::TOKEN_PURE:	  
 			return true;
 		default:
@@ -134,28 +134,30 @@ void Parser::synchronize()
 
 std::optional<ASTNode> Parser::parsePrint()
 {
+	std::optional<ExprNode> expression;
 	advance(); // Consume 'print'
 	expect(TokenType::TOKEN_LEFT_PARENTHESIS);
-	Token finalToken = expect(getPossibleTokens_Print());
+	expression = parseExpr();
 	expect(TokenType::TOKEN_RIGHT_PARENTHESIS);
 	expect(TokenType::TOKEN_SEMICOLON);
 
-	// return ASTNode ( PrintNode { .value = parseLiteral(finalToken)});
+	if (!expression.has_value())
+	{
+		hadError = true;
+		std::println(
+			"[Parser Error]: Expected a printable value"
+		);
+		return std::nullopt;
+	}
 
-	if (finalToken.type == TokenType::TOKEN_STRING_LITERAL)
-		return ASTNode( PrintNode { .value = parseLiteral(finalToken ) } );
-	else if (finalToken.type == TokenType::TOKEN_INTEGER_LITERAL)
-		return ASTNode( PrintNode { .value = parseLiteral(finalToken ) } );
-	else if (finalToken.type == TokenType::TOKEN_FLOAT_LITERAL)
-		return ASTNode( PrintNode { .value = parseLiteral(finalToken ) } );
-
-	hadError = true;
-	std::println(
-		"[Parser Error]: Expected a printable value, Got '{}'. Line: {}",
-		tokenTypeToString(finalToken.type),
-		finalToken.line
-	);
-	return std::nullopt;
+	return ASTNode 
+	{
+		PrintNode
+		{
+			.value = std::move(*expression)
+		}
+	};
+	
 }
 
 bool Parser::isAnnotationKeyword(TokenType type)
@@ -189,10 +191,10 @@ std::optional<ASTNode> Parser::parseFunctionDeclaration()
 		switch (current().type)
 		{
 			case TokenType::TOKEN_MUT:	isMut	= true; break;
-			case TokenType::TOKEN_HEAP:   isHeap   = true; break;
+			case TokenType::TOKEN_HEAP:	isHeap	= true; break;
 			case TokenType::TOKEN_IO:	 isIo	 = true; break;
 			case TokenType::TOKEN_THROWS: isThrows = true; break;
-			case TokenType::TOKEN_PURE:   isPure   = true; break;
+			case TokenType::TOKEN_PURE:	isPure	= true; break;
 			case TokenType::TOKEN_NULLABLE_OPERATOR: returnsNull = true; break;
 			default: typeToken = current(); // return type keyword capture
 		}
@@ -237,12 +239,12 @@ std::optional<ASTNode> Parser::parseFunctionDeclaration()
 		.type	 = TypeNode { .name = typeToken.value, .isNullable = false },
 		.name	 = nameToken.value,
 		.returnsNull = returnsNull,
-		.isHeap   = isHeap,
+		.isHeap	= isHeap,
 		.isIo	 = isIo,
 		.isThrows = isThrows,
-		.isPure   = isPure,
+		.isPure	= isPure,
 		.isMut	= isMut,
-		.isAuto   = isAuto,
+		.isAuto	= isAuto,
 		.body	= std::move(body)
 	}};
 }
@@ -403,7 +405,7 @@ std::optional<ASTNode> Parser::parseVariableDeclaration()
 		isMutable = true;
 		// if we do this on outside, then type-tokens can get skipped if mut is not there
 		advance();
-	}   
+	}	
 
 	//Contains type/auto
 	Token typeToken = current(); 
@@ -446,38 +448,38 @@ std::optional<ASTNode> Parser::parseVariableDeclaration()
 LiteralNode Parser::parseLiteral(const Token& tok, bool isNegative)
 {
 	switch (tok.type)
-    {
-        case TokenType::TOKEN_INTEGER_LITERAL:
-            return LiteralNode { .value = UntypedInt { std::stoll(tok.value) }, .isNegative = isNegative };
+	 {
+		  case TokenType::TOKEN_INTEGER_LITERAL:
+				return LiteralNode { .value = UntypedInt { std::stoll(tok.value) }, .isNegative = isNegative };
 
-        case TokenType::TOKEN_FLOAT_LITERAL:
-            return LiteralNode { .value = UntypedFloat { std::stod(tok.value) }, .isNegative = isNegative };
+		  case TokenType::TOKEN_FLOAT_LITERAL:
+				return LiteralNode { .value = UntypedFloat { std::stod(tok.value) }, .isNegative = isNegative };
 
-        case TokenType::TOKEN_STRING_LITERAL:
-            return LiteralNode { .value = tok.value };
+		  case TokenType::TOKEN_STRING_LITERAL:
+				return LiteralNode { .value = tok.value };
 
-        case TokenType::TOKEN_BOOL_LITERAL:
-            return LiteralNode { .value = tok.value == "true" };
-    }
+		  case TokenType::TOKEN_BOOL_LITERAL:
+				return LiteralNode { .value = tok.value == "true" };
+	 }
 	return LiteralNode { .value = tok.value };
 }
 
 // LiteralNode Parser::parseLiteral(const Token& tok)
 // {
 // 	switch (tok.type)
-//     {
-//         case TokenType::TOKEN_INTEGER_LITERAL:
-//             return LiteralNode { .value = UntypedInt { std::stoll(tok.value) } };
+//	  {
+//			case TokenType::TOKEN_INTEGER_LITERAL:
+//				 return LiteralNode { .value = UntypedInt { std::stoll(tok.value) } };
 
-//         case TokenType::TOKEN_FLOAT_LITERAL:
-//             return LiteralNode { .value = UntypedFloat { std::stod(tok.value) } };
+//			case TokenType::TOKEN_FLOAT_LITERAL:
+//				 return LiteralNode { .value = UntypedFloat { std::stod(tok.value) } };
 
-//         case TokenType::TOKEN_STRING_LITERAL:
-//             return LiteralNode { .value = tok.value };
+//			case TokenType::TOKEN_STRING_LITERAL:
+//				 return LiteralNode { .value = tok.value };
 
-//         case TokenType::TOKEN_BOOL_LITERAL:
-//             return LiteralNode { .value = tok.value == "true" };
-//     }
+//			case TokenType::TOKEN_BOOL_LITERAL:
+//				 return LiteralNode { .value = tok.value == "true" };
+//	  }
 // }
 
 std::optional<ASTNode> Parser::parseStatement()
@@ -541,16 +543,6 @@ std::vector<ASTNode> Parser::parse()
 		}
 	}
 	return std::move(ast_Vector);
-}
-
-std::vector<TokenType> Parser::getPossibleTokens_Print()
-{
-	std::vector<TokenType> possible = {
-		TokenType::TOKEN_STRING_LITERAL,
-		TokenType::TOKEN_INTEGER_LITERAL,
-		TokenType::TOKEN_FLOAT_LITERAL
-	};
-	return possible;
 }
 
 std::vector<TokenType> Parser::getPossibleTokens_Decl()

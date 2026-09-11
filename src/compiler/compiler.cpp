@@ -7,9 +7,10 @@
 #include <llvm/Support/CodeGen.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Support/Program.h>
-#pragma warning(pop)
+
 #include "compiler.hpp"
 #include "codegen.hpp"
+#pragma warning(pop)
 
 Compiler::Compiler(CodeGenerator* codegen)
 {
@@ -55,7 +56,11 @@ void Compiler::link(std::filesystem::path outputPath)
 	}
 
 	std::string objPath = std::filesystem::absolute(outputPath_Object).string();
-	std::string outArg = "/OUT:" + outputPath.string() + ".exe";
+	std::string outArg;
+	if (outputPath.string().contains(".exe"))
+		outArg = "/OUT:" + outputPath.string();
+	else
+		outArg = "/OUT:" + outputPath.string() + ".exe";
 
 	std::vector<llvm::StringRef> args =
 	{
@@ -65,6 +70,7 @@ void Compiler::link(std::filesystem::path outputPath)
 		"/DEFAULTLIB:msvcrt",
 		"/DEFAULTLIB:ucrt",
 		"/DEFAULTLIB:vcruntime",
+		"/DEFAULTLIB:legacy_stdio_definitions.lib",
 		"/SUBSYSTEM:CONSOLE",
 		"/MACHINE:X64"
 	};

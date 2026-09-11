@@ -27,7 +27,7 @@ It compiles to native code with no runtime overhead, no garbage collector, and n
 // single line comment
 
 /* 
-   multi line comment
+	multi line comment
 */
 ```
 
@@ -89,7 +89,7 @@ myproject/
 		main.tnt
 		modules/
 			MyMod/
-				module.tnt	   // module Maths;
+				module.tnt		// module Maths;
 				userAdd.tnt	  // impl module Maths;
 				userSub.tnt	  // impl module Maths;
 ```
@@ -210,7 +210,7 @@ Loop control:
 
 ```tnt
 break;	  // exit loop
-continue;   // skip to next iteration
+continue;	// skip to next iteration
 ```
 
 ---
@@ -220,7 +220,7 @@ continue;   // skip to next iteration
 ### 5.1 Storage Classes
 
 ```tnt
-heap int* x = ...;	   // heap allocated — you own it, you free it
+heap int* x = ...;		// heap allocated — you own it, you free it
 stack int y = 5;		 // explicitly stack (usually implicit)
 static int z = 0;		// static storage duration
 ```
@@ -245,8 +245,8 @@ pool heap int* x = myPool->alloc(int);
 > Unique and shared, and the entire aliasing/optimisation concept is not finalized.
 
 ```tnt
-unique heap int* x = ...;   // compiler guaranteed: no other pointer aliases this
-shared heap int* y = ...;   // explicitly shared, treated conservatively
+unique heap int* x = ...;	// compiler guaranteed: no other pointer aliases this
+shared heap int* y = ...;	// explicitly shared, treated conservatively
 ```
 
 - `unique` unlocks aggressive compiler optimizations (vectorization, loop unrolling, register allocation)
@@ -261,9 +261,9 @@ shared heap int* y = ...;   // explicitly shared, treated conservatively
 
 ```tnt
 int8	uint8
-int16   uint16
-int32   uint32
-int64   uint64
+int16	uint16
+int32	uint32
+int64	uint64
 int128  uint128
 
 float32
@@ -313,7 +313,7 @@ const string APP_NAME = "MyApp";
 
 ```tnt
 auto x = 5;		 // inferred as int32, locked in at declaration
-auto y = 5.0;	   // inferred as float64
+auto y = 5.0;		// inferred as float64
 x = "hello";		// COMPILE ERROR — x is int32
 ```
 

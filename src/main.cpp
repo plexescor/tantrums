@@ -17,21 +17,31 @@
 #include "compiler.hpp"
 #include "typeChecker.hpp"
 
+/*
+	-o a.obj -l a.exe
+	->
+*/
 int main(int argc, char* argv[])
-{   
+{	
 	bool emitIR = false;
-	std::filesystem::path outputPath;
+	std::filesystem::path outputPath_Object = "";
+	std::filesystem::path outputPath_Executable = "";
 	for (int i = 1; i < argc; i++)
 	{
 		if (std::string(argv[i]) == "--emit-llvm-ir")
 		{
 			emitIR = true;
 		}
-		// else if (std::string(argv[i]) == "-o")
-		// {
-		//	 // I know its dangerous
-		//	 outputPath = argv[i + 1];
-		// }
+		else if (std::string(argv[i]) == "-o")
+		{
+			// I know its dangerous
+			outputPath_Object = argv[i + 1];
+		}
+		else if (std::string(argv[i]) == "-l")
+		{
+			// I know its dangerous
+			outputPath_Executable = argv[i + 1];
+		}
 	}
 	if (argc < 2) 
 	{
@@ -44,8 +54,14 @@ int main(int argc, char* argv[])
 
 	for (int i = 1; i < argc; i++)
 	{
+		// I know those are bad... for now.
 		if (std::string(argv[i]) == "--emit-llvm-ir") continue;
-		std::thread worker([&argv, &start, i, emitIR]() 
+		else if (std::string(argv[i]) == "-o") continue;
+		else if (std::string(argv[i - 1]) == "-o") continue;
+		else if (std::string(argv[i]) == "-l") continue;
+		else if (std::string(argv[i - 1]) == "-l") continue;
+
+		std::thread worker([&argv, &start, i, emitIR, &outputPath_Executable, &outputPath_Object]() 
 		{
 			// Sorry for my bad time accumulation
 			std::vector<Token> tokens;
@@ -72,12 +88,13 @@ int main(int argc, char* argv[])
 			auto duration_ = std::chrono::duration_cast<std::chrono::milliseconds>(end_ - end);
 			std::println("Parsing took: {} ms", duration_.count());
 
-			// TypeChecker typeChecker(astNodes);
-			// bool result = typeChecker.check();
-			// if (!result) exit(1);
+			TypeChecker typeChecker(astNodes);
+			bool result = typeChecker.check();
+			if (!result) exit(1);
 
 			std::println("Generating IR for: {} : Progress: {}%", argv[i], 40);
 			std::unique_ptr<CodeGenerator> codegen = std::make_unique<CodeGenerator>(astNodes);
+			codegen->setTypeChecker(&typeChecker);
 			codegen->generate(emitIR);
 
 			std::chrono::steady_clock::time_point end__ = std::chrono::steady_clock::now();
@@ -90,14 +107,20 @@ int main(int argc, char* argv[])
 			// Todo: make using cli args
 			Compiler compiler(codegen.get());
 			std::println("Compiling file: {} : Progress: {}%", argv[i], 60);
-			compiler.compile("output.o");
+			if (outputPath_Object.empty())
+				compiler.compile("output.o");
+			else
+				compiler.compile(outputPath_Object);
 
 			std::chrono::steady_clock::time_point end___ = std::chrono::steady_clock::now();
 			auto duration___ = std::chrono::duration_cast<std::chrono::milliseconds>(end___ - end__);
 			std::println("Compiling took: {} ms", duration___.count());
 
 			std::println("Linking file: {} : Progress: {}%", argv[i], 80);
-			compiler.link("a");
+			if (outputPath_Executable.empty())
+				compiler.link("a");
+			else
+				compiler.link(outputPath_Executable);
 			std::println("Linked executable: {} : Progress: {}%", argv[i], 100);
 
 			std::chrono::steady_clock::time_point end____ = std::chrono::steady_clock::now();

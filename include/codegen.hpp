@@ -10,6 +10,7 @@
 #include <llvm/Target/TargetMachine.h>
 
 #include "ast.hpp"
+#include "typeChecker.hpp"
 
 class CodeGenerator
 {
@@ -28,8 +29,13 @@ class CodeGenerator
 		void generateFunction(const FunctionDeclarationNode& functionDeclNode);
 		void generateVariable(const VariableDeclarationNode& varDeclNode, llvm::Function* function);
 
+	public:
+		void setTypeChecker(TypeChecker* checker);
+		
 	private:
 		std::map<std::string, llvm::AllocaInst*> namedValues_Variables;
+
+		TypeChecker* typeChecker = nullptr;	
 
 		llvm::FunctionCallee printfFunc;
 		llvm::LLVMContext context;

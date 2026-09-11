@@ -301,7 +301,7 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
 						case 't':  word += '\t'; break;
 						case '"':  word += '"';  break;
 						case '\\': word += '\\'; break;
-						default:   word += nextChar; break;
+						default:	word += nextChar; break;
 					}
 					totalLengthRead++; // skip the next char since we already consumed it
 				}

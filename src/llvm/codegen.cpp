@@ -14,6 +14,7 @@
 #include <llvm/Support/TargetSelect.h>
 #pragma warning(pop)
 
+#include "typeChecker.hpp"
 #include "codegen.hpp"
 #include "ast.hpp"
 
@@ -25,6 +26,11 @@ CodeGenerator::CodeGenerator(std::vector<ASTNode>& nodes)
 	  module(std::make_unique<llvm::Module>("tantrums", context))
 {
 	this->nodes = std::move(nodes);
+}
+
+void CodeGenerator::setTypeChecker(TypeChecker* checker)
+{
+	typeChecker = checker;
 }
 
 llvm::LLVMContext* CodeGenerator::getLlvmContext()
@@ -49,22 +55,26 @@ llvm::TargetMachine* CodeGenerator::getTargetMachine()
 llvm::Type* CodeGenerator::getLlvmType(std::string& returnType)
 {
 	if (returnType == "int8") return builder.getInt8Ty();
-    else if (returnType == "int16") return builder.getInt16Ty();
-    else if (returnType == "int32") return builder.getInt32Ty();
-    else if (returnType == "int64") return builder.getInt64Ty();
-    else if (returnType == "uint8") return builder.getInt8Ty();
-    else if (returnType == "uint16") return builder.getInt16Ty();
-    else if (returnType == "uint32") return builder.getInt32Ty();
-    else if (returnType == "uint64") return builder.getInt64Ty();
+	else if (returnType == "int16") return builder.getInt16Ty();
+	else if (returnType == "int32") return builder.getInt32Ty();
+	else if (returnType == "int64") return builder.getInt64Ty();
+	else if (returnType == "uint8") return builder.getInt8Ty();
+	else if (returnType == "uint16") return builder.getInt16Ty();
+	else if (returnType == "uint32") return builder.getInt32Ty();
+	else if (returnType == "uint64") return builder.getInt64Ty();
 	else if (returnType == "float32") return builder.getFloatTy();
 	else if (returnType == "float64") return builder.getDoubleTy();
 	else if (returnType == "string")  return builder.getPtrTy();
-    else if (returnType == "bool") return builder.getInt1Ty();
-    else if (returnType == "void") return builder.getVoidTy();
+	else if (returnType == "bool") return builder.getInt1Ty();
+	else if (returnType == "void") return builder.getVoidTy();
+
+	// treate untyped int as int32 by default, untypedFloat as float32
+	else if (returnType == "untypedInt") return builder.getInt32Ty();
+	else if (returnType == "untypedFloat") return builder.getFloatTy();
 
 	std::println(stderr, "[Codegen] Unknown type: '{}'", returnType);
-    assert(false && "[Codegen] Unknown type");
-    return nullptr;
+	assert(false && "[Codegen] Unknown type");
+	return nullptr;
 }
 
 llvm::Value* CodeGenerator::generateExpr(const ExprNode& exprNode, const std::string& resolvedType)
@@ -103,7 +113,13 @@ llvm::Value* CodeGenerator::generateExpr(const ExprNode& exprNode, const std::st
 		[this, resolvedType](const IdentifierNode& identifierNode) -> llvm::Value*
 		{
 			std::string resolved = resolvedType;
-			return builder.CreateLoad(getLlvmType(resolved), namedValues_Variables[identifierNode.name]);
+			auto it = namedValues_Variables.find(identifierNode.name);
+			if (it == namedValues_Variables.end() || it->second == nullptr)
+			{
+				std::println(stderr, "[Codegen error] Variable '{}' not found or not allocated!", identifierNode.name);
+				return nullptr;
+			}
+			return builder.CreateLoad(getLlvmType(resolved), it->second);
 		},
 
 		[this, resolvedType](const BinaryExprNode& binaryNode) -> llvm::Value*
@@ -120,23 +136,23 @@ llvm::Value* CodeGenerator::generateExpr(const ExprNode& exprNode, const std::st
 			{
 				case TokenType::TOKEN_PLUS_OPERATOR:
 					return isFloat ? builder.CreateFAdd(left, right)
-								   : builder.CreateAdd(left, right);
-							       break;
+									: builder.CreateAdd(left, right);
+									 break;
 
 				case TokenType::TOKEN_MINUS_OPERATOR:
 					return isFloat ? builder.CreateFSub(left, right)
-								   : builder.CreateSub(left, right);
-								   break;
+									: builder.CreateSub(left, right);
+									break;
 
 				case TokenType::TOKEN_STAR_OPERATOR:
 					return isFloat ? builder.CreateFMul(left, right)
-								   : builder.CreateMul(left, right);
-							       break;
+									: builder.CreateMul(left, right);
+									 break;
 				
 				case TokenType::TOKEN_DIVISION_OPERATOR:
 					return isFloat ? builder.CreateFDiv(left, right)
-								   : builder.CreateSDiv(left, right);
-							       break;
+									: builder.CreateSDiv(left, right);
+									 break;
 				
 				default:
 					return nullptr;
@@ -208,7 +224,7 @@ void CodeGenerator::generate(bool emitIr)
 	// (
 	//	 builder.getInt32Ty(),			  // Return type: i32
 	//	 {builder.getPtrTy()},			  // First arg: i8* 
-	//	 true							   // Is variadic: true
+	//	 true								// Is variadic: true
 	// );
 
 	// printfFunc = 
@@ -221,7 +237,7 @@ void CodeGenerator::generate(bool emitIr)
 		{
 			[this](const FunctionDeclarationNode& fnDecl)
 			{
-				generateFunction(fnDecl);   
+				generateFunction(fnDecl);	
 			},
 			[this](const auto&) {},
 		}, nodes[currentNode]);
@@ -240,15 +256,15 @@ void CodeGenerator::generateFunction(const FunctionDeclarationNode& functionDecl
 
 	// just capture them for now
 	// i dont think we will need this here at all after TypeChecker i implemented
-	bool isHeap   = functionDeclNode.isHeap;
+	bool isHeap	= functionDeclNode.isHeap;
 	bool isIo	 = functionDeclNode.isIo;
 	bool isThrows = functionDeclNode.isThrows;
-	bool isPure   = functionDeclNode.isPure;
+	bool isPure	= functionDeclNode.isPure;
 	bool isMut	= functionDeclNode.isMut;
-	bool isAuto   = functionDeclNode.isAuto;
+	bool isAuto	= functionDeclNode.isAuto;
 
-   llvm::Type* result = getLlvmType(returnType);
-//    std::println(stderr, "[Debug] returnType='{}' -> result={}", returnType, (void*)result);
+	llvm::Type* result = getLlvmType(returnType);
+//	 std::println(stderr, "[Debug] returnType='{}' -> result={}", returnType, (void*)result);
 
 	// No arg and variadic arg support for now
 	llvm::FunctionType* functionType = llvm::FunctionType::get
@@ -314,7 +330,7 @@ void CodeGenerator::generateVariable(const VariableDeclarationNode& varDeclNode
 	llvm::Type* type = getLlvmType(type_Str);
 
 	llvm::IRBuilder<> tempBuilder(&function->getEntryBlock(), function->getEntryBlock().begin());
-    llvm::AllocaInst* alloca = tempBuilder.CreateAlloca(type, nullptr, name);
+	llvm::AllocaInst* alloca = tempBuilder.CreateAlloca(type, nullptr, name);
 
 	llvm::Value* initialValue = generateExpr(varDeclNode.value, type_Str);
 
@@ -329,79 +345,39 @@ void CodeGenerator::generateVariable(const VariableDeclarationNode& varDeclNode
 }
 void CodeGenerator::generatePrint(const PrintNode& printNode)
 {
-	// std::visit([this](const auto& literalVal)
-	// {
-	// 	using T = std::decay_t<decltype(literalVal)>;
+	if (!typeChecker) 
+	{
+		std::println(stderr, "[CodeGen error] Type Checker pointer is null!");
+		return;
+	}
+	std::string resolvedType = printNode.resolvedType;
+	llvm::Value* value = generateExpr(printNode.value, resolvedType);
+	if (!value || !printfFunc)
+		return;
 
-	// 	if constexpr (std::is_same_v<T, std::string>)
-	// 	{
-	// 		llvm::Value* str = builder.CreateGlobalString(literalVal);
-	// 		builder.CreateCall(printfFunc, {str});
-	// 	}
-	// 	else if constexpr (std::is_same_v<T, int8_t>)
-	// 	{
-	// 		llvm::Value* fmt = builder.CreateGlobalString("%hhd\n");
-	// 		llvm::Value* val = llvm::ConstantInt::get(builder.getInt8Ty(), literalVal);
-	// 		builder.CreateCall(printfFunc, {fmt, val});
-	// 	}
-	// 	else if constexpr (std::is_same_v<T, int16_t>)
-	// 	{
-	// 		llvm::Value* fmt = builder.CreateGlobalString("%hd\n");
-	// 		llvm::Value* val = llvm::ConstantInt::get(builder.getInt16Ty(), literalVal);
-	// 		builder.CreateCall(printfFunc, {fmt, val});
-	// 	}
-	// 	else if constexpr (std::is_same_v<T, int32_t>)
-	// 	{
-	// 		llvm::Value* fmt = builder.CreateGlobalString("%d\n");
-	// 		llvm::Value* val = llvm::ConstantInt::get(builder.getInt32Ty(), literalVal);
-	// 		builder.CreateCall(printfFunc, {fmt, val});
-	// 	}
-	// 	else if constexpr (std::is_same_v<T, int64_t>)
-	// 	{
-	// 		llvm::Value* fmt = builder.CreateGlobalString("%lld\n");
-	// 		llvm::Value* val = llvm::ConstantInt::get(builder.getInt64Ty(), literalVal);
-	// 		builder.CreateCall(printfFunc, {fmt, val});
-	// 	}
-	// 	else if constexpr (std::is_same_v<T, uint8_t>)
-	// 	{
-	// 		llvm::Value* fmt = builder.CreateGlobalString("%hhu\n");
-	// 		llvm::Value* val = llvm::ConstantInt::get(builder.getInt8Ty(), literalVal);
-	// 		builder.CreateCall(printfFunc, {fmt, val});
-	// 	}
-	// 	else if constexpr (std::is_same_v<T, uint16_t>)
-	// 	{
-	// 		llvm::Value* fmt = builder.CreateGlobalString("%hu\n");
-	// 		llvm::Value* val = llvm::ConstantInt::get(builder.getInt16Ty(), literalVal);
-	// 		builder.CreateCall(printfFunc, {fmt, val});
-	// 	}
-	// 	else if constexpr (std::is_same_v<T, uint32_t>)
-	// 	{
-	// 		llvm::Value* fmt = builder.CreateGlobalString("%u\n");
-	// 		llvm::Value* val = llvm::ConstantInt::get(builder.getInt32Ty(), literalVal);
-	// 		builder.CreateCall(printfFunc, {fmt, val});
-	// 	}
-	// 	else if constexpr (std::is_same_v<T, uint64_t>)
-	// 	{
-	// 		llvm::Value* fmt = builder.CreateGlobalString("%llu\n");
-	// 		llvm::Value* val = llvm::ConstantInt::get(builder.getInt64Ty(), literalVal);
-	// 		builder.CreateCall(printfFunc, {fmt, val});
-	// 	}
-	// 	else if constexpr (std::is_same_v<T, double>)
-	// 	{
-	// 		llvm::Value* fmt = builder.CreateGlobalString("%f\n");
-	// 		llvm::Value* val = llvm::ConstantFP::get(builder.getDoubleTy(), literalVal);
-	// 		builder.CreateCall(printfFunc, {fmt, val});
-	// 	}
-	// 	else if constexpr (std::is_same_v<T, float>)
-	// 	{
-	// 		llvm::Value* fmt = builder.CreateGlobalString("%f\n");
-	// 		llvm::Value* val = llvm::ConstantFP::get(builder.getDoubleTy(), static_cast<double>(literalVal));
-	// 		builder.CreateCall(printfFunc, {fmt, val});
-	// 	}
-	// 	else if constexpr (std::is_same_v<T, bool>)
-	// 	{
-	// 		llvm::Value* str = builder.CreateGlobalString(literalVal ? "true\n" : "false\n");
-	// 		builder.CreateCall(printfFunc, {str});
-	// 	}
-	// }, printNode.value);
+	llvm::Value* format;
+	llvm::Value* doubleValue = nullptr;
+
+	// Treate booleans similar as num literals
+	if (typeChecker->validIntTypes.contains(resolvedType) || resolvedType == "bool")
+	{
+		format = builder.CreateGlobalString("%d\n", "print.format");
+	}
+	else if (typeChecker->validFloatTypes.contains(resolvedType))
+	{
+		if (value->getType()->isFloatTy()) 
+		{
+			doubleValue = builder.CreateFPExt(value, builder.getDoubleTy(), "promotedDouble");
+		}
+		format = builder.CreateGlobalString("%f\n", "print.format");
+	}
+	else if (resolvedType == "string")
+	{
+		format = builder.CreateGlobalString("%s\n", "print.format");
+	}
+	
+	if (doubleValue)
+		builder.CreateCall(printfFunc, { format, doubleValue });
+	else
+		builder.CreateCall(printfFunc, { format, value} );
 }

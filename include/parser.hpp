@@ -35,7 +35,6 @@ class Parser
 		std::optional<ExprNode> parseUnary();
 		std::optional<ExprNode> parseTerm();
 
-		std::vector<TokenType> getPossibleTokens_Print();
 		std::vector<TokenType> getPossibleTokens_Decl();
 	private:
 		std::vector<ASTNode> ast_Vector;
