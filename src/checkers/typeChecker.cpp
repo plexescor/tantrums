@@ -313,7 +313,8 @@ void TypeChecker::checkFunctionCall(FunctionCallNode &fnCall)
 	std::optional<std::string> returnType = symbols.lookupFunction(name);
 	if (!returnType.has_value())
 	{
-		
+		errorBuffer.push_back(std::format("Function '{}' does not exist!", name));
+		return;
 	}
 }
 

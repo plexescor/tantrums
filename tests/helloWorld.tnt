@@ -1,10 +1,20 @@
-// Aim for today day: get function calls working
+// Aim for next time: get return types working
 void testFunc()
 {
-	print("Hello world!");
+	int64 ffjfj = 9 + 18;
+}
+
+void greet()
+{
+  print("Hello World!");
 }
 
 int32 main()
 {
-	testFunc();
+	int32 x = -5 * 1;
+	int64 y = 5 / 48 + (47488 + 38 * 37);
+
+	float64 a = 59.4;
+	int8 b = 99;
+	greet();
 }

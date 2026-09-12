@@ -294,6 +294,8 @@ void CodeGenerator::generateFunction(const FunctionDeclarationNode& functionDecl
 	);
 	printfFunc = module->getOrInsertFunction("printf", printfType);
 
+	namedValues_Functions[name] = { function, functionType };
+
 	// emit body
 	for (const ASTNode& node : body)
 	{
@@ -314,7 +316,11 @@ void CodeGenerator::generateFunction(const FunctionDeclarationNode& functionDecl
 			[this](const FunctionDeclarationNode& fn) 
 			{ 
 				// generateFunction(fn); 
-			}, 
+			},
+			[this](const FunctionCallNode& fnCall) 
+			{ 
+				generateFunctionCall(fnCall); 
+			},  
 		}, node);
 	}
 
@@ -323,6 +329,20 @@ void CodeGenerator::generateFunction(const FunctionDeclarationNode& functionDecl
 		builder.CreateRetVoid();
 	else
 		builder.CreateRet(llvm::ConstantInt::get(result, 0));
+}
+
+void CodeGenerator::generateFunctionCall(const FunctionCallNode &fnCall)
+{
+	auto it = namedValues_Functions.find(fnCall.name);
+	if (it == namedValues_Functions.end())
+	{
+		std::println(stderr, "[Codegen error] Function '{}' not found!", fnCall.name);
+		return;
+	}
+
+	llvm::Function* function = it->second.first;
+	llvm::FunctionType* type = it->second.second;
+	builder.CreateCall(type, function, {});
 }
 
 void CodeGenerator::generateVariable(const VariableDeclarationNode& varDeclNode

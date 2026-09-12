@@ -27,6 +27,7 @@ class CodeGenerator
 		llvm::Value* generateExpr(const ExprNode& exprNode, const std::string& resolvedType);
 		void generatePrint(const PrintNode& printNode);
 		void generateFunction(const FunctionDeclarationNode& functionDeclNode);
+		void generateFunctionCall(const FunctionCallNode& fnCall);
 		void generateVariable(const VariableDeclarationNode& varDeclNode, llvm::Function* function);
 
 	public:
@@ -34,6 +35,7 @@ class CodeGenerator
 		
 	private:
 		std::map<std::string, llvm::AllocaInst*> namedValues_Variables;
+		std::map<std::string, std::pair<llvm::Function*, llvm::FunctionType*>> namedValues_Functions;
 
 		TypeChecker* typeChecker = nullptr;	
 

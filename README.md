@@ -38,37 +38,29 @@ The long-term goal is to make Tantrums capable enough to port a real application
 
 ## Current status
 
-The compiler currently supports a complete end-to-end pipeline from source text to native machine code:
-
-- **Lexer**: Tokenizes source text, tracks line and column coordinates, handles keywords, primitive types (`int8`–`int64`, `uint8`–`uint64`, `float32`, `float64`, `bool`, `string`, `void`), operators, literals, and comments (`//`).
-- **Parser**: Recursive descent parser producing an AST for:
-  - Function declarations (return types, nullability `?`, and annotations).
-  - Variable declarations (`mut`, explicit types, `auto`, nullability).
-  - Expressions: binary arithmetic (`+`, `-`, `*`, `/`) with operator precedence, unary negation (`-`), parenthesized sub-expressions `(...)`, typed literals, and variable identifiers.
-  - Error recovery and synchronization (`synchronize()`).
-- **LLVM IR Codegen**:
-  - Target machine setup with host triple and data layout.
-  - Emits native LLVM types (`i8`–`i64`, `float`, `double`, `i1`, `ptr`, `void`).
-  - Stack allocations in function entry basic blocks (`alloca`).
-  - Integer and floating-point arithmetic emission (`add`/`fadd`, `sub`/`fsub`, `mul`/`fmul`, `sdiv`/`fdiv`, `neg`/`fneg`).
-  - Variable load and store operations.
-- **Compiler & Native Linker**:
-  - Emits native machine code object files (`output.o`) via LLVM `PassManager`.
-  - Links directly to a native executable via MSVC `link.exe` (on Windows) or `ld.lld` (on Linux).
-- **Driver**:
-  - Multi-threaded file compilation (parallel worker threads per input file, <- just cosmetic).
-  - Per-phase timing reports for lexing, parsing, IR generation, compiling, and linking.
+- Lexer lexing
+- Parser parsing
+- Type checker type checking
+- Code generater code gen-ing
+- Function calls working though with no args for now or no returns for now
+- Expressions working
+- Variable declaration and usage and funciton declarations working
 
 ---
 
 ## Working example
 
-The compiler currently compiles `.tnt` files with functions, variable declarations, and arithmetic expressions:
+The compiler currently compiles `.tnt` files with functions declarations and calls, variable declarations, and arithmetic expressions:
 
 ```tnt
 void testFunc()
 {
 	int64 ffjfj = 9 + 18;
+}
+
+void greet()
+{
+  print("Hello World!");
 }
 
 int32 main()
@@ -78,7 +70,64 @@ int32 main()
 
 	float64 a = 59.4;
 	int8 b = 99;
+  greet();  
 }
+```
+
+Output (IR):
+```tnt
+C:\Users\Plexescor\Projects\tantrums\build>Debug\tantrums.exe ..\tests\helloWorld.tnt -o TEST.obj -l hello.exe --emit-llvm-ir
+Lexing file: ..\tests\helloWorld.tnt : Progress: 0%
+Lexing took: 1 ms
+Parsing file: ..\tests\helloWorld.tnt : Progress: 20%
+[FunctionDecl] name=testFunc returnType=void null=false mut=false heap=false io=false throws=false pure=false
+[FunctionDecl] name=greet returnType=void null=false mut=false heap=false io=false throws=false pure=false
+[FunctionDecl] name=main returnType=int32 null=false mut=false heap=false io=false throws=false pure=false
+Parsing took: 0 ms
+Generating IR for: ..\tests\helloWorld.tnt : Progress: 40%
+; ModuleID = 'tantrums'
+source_filename = "tantrums"
+target datalayout = "e-m:w-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-pc-windows-msvc"
+
+@0 = private unnamed_addr constant [13 x i8] c"Hello World!\00", align 1
+@print.format = private unnamed_addr constant [4 x i8] c"%s\0A\00", align 1
+
+define void @testFunc() {
+entry:
+  %ffjfj = alloca i64, align 8
+  store i64 27, ptr %ffjfj, align 8
+  ret void
+}
+
+declare i32 @printf(ptr, ...)
+
+define void @greet() {
+entry:
+  %0 = call i32 (ptr, ...) @printf(ptr @print.format, ptr @0)
+  ret void
+}
+
+define i32 @main() {
+entry:
+  %b = alloca i8, align 1
+  %a = alloca double, align 8
+  %y = alloca i64, align 8
+  %x = alloca i32, align 4
+  store i32 -5, ptr %x, align 4
+  store i64 48894, ptr %y, align 8
+  store double 0x404DB33333333333, ptr %a, align 8
+  store i8 99, ptr %b, align 1
+  call void @greet()
+  ret i32 0
+}
+IR generation took: 7 ms
+Compilation time: 8 ms
+
+C:\Users\Plexescor\Projects\tantrums\build>hello.exe
+Hello world!
+
+C:\Users\Plexescor\Projects\tantrums\build>
 ```
 
 ---
