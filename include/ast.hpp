@@ -21,6 +21,7 @@ struct UntypedFloat
 struct VariableDeclarationNode;
 struct PrintNode;
 struct FunctionDeclarationNode;
+struct FunctionCallNode;
 
 // int32 x = y; its a var, function calls handled
 struct IdentifierNode;
@@ -36,7 +37,7 @@ struct BinaryExprNode;
 struct UnaryExprNode;
 
 // ASTNode defined early so structs can use it
-using ASTNode = std::variant<VariableDeclarationNode, PrintNode, FunctionDeclarationNode>;
+using ASTNode = std::variant<VariableDeclarationNode, PrintNode, FunctionDeclarationNode, FunctionCallNode>;
 using ExprNode = std::variant<LiteralNode, IdentifierNode, BinaryExprNode, UnaryExprNode>;
 
 struct LiteralNode
@@ -86,13 +87,19 @@ struct FunctionDeclarationNode
 
 	bool returnsNull = false;
 	bool isHeap	= false;
-	bool isIo	 = false;
+	bool isIo	= false;
 	bool isThrows = false;
 	bool isPure	= false;
 	bool isMut	= false;
 	bool isAuto	= false;
 
 	std::vector<ASTNode> body;
+};
+
+// No args for now
+struct FunctionCallNode
+{
+	std::string name;
 };
 
 struct VariableDeclarationNode

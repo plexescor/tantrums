@@ -1,18 +1,10 @@
 // Aim for today day: get function calls working
 void testFunc()
 {
-	int64 ffjfj = 9 + 18;
+	print("Hello world!");
 }
 
 int32 main()
 {
-	int32 x = -5 * 1;
-	int32 y = x * x;
-	// 5 / 48 <- 0
-	
-	float64 a = 59.4;
-	int8 b = 99;
-	print("suspect btw: ");
-	print(25.0 * 75.0);
-	
+	testFunc();
 }

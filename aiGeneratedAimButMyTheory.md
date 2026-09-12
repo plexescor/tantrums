@@ -90,8 +90,8 @@ myproject/
 		modules/
 			MyMod/
 				module.tnt		// module Maths;
-				userAdd.tnt	  // impl module Maths;
-				userSub.tnt	  // impl module Maths;
+				userAdd.tnt	 // impl module Maths;
+				userSub.tnt	 // impl module Maths;
 ```
 
 #### tantrum.proj
@@ -209,7 +209,7 @@ while (condition) {
 Loop control:
 
 ```tnt
-break;	  // exit loop
+break;	 // exit loop
 continue;	// skip to next iteration
 ```
 
@@ -221,7 +221,7 @@ continue;	// skip to next iteration
 
 ```tnt
 heap int* x = ...;		// heap allocated — you own it, you free it
-stack int y = 5;		 // explicitly stack (usually implicit)
+stack int y = 5;		// explicitly stack (usually implicit)
 static int z = 0;		// static storage duration
 ```
 
@@ -312,7 +312,7 @@ const string APP_NAME = "MyApp";
 ### 6.4 Auto Inference
 
 ```tnt
-auto x = 5;		 // inferred as int32, locked in at declaration
+auto x = 5;		// inferred as int32, locked in at declaration
 auto y = 5.0;		// inferred as float64
 x = "hello";		// COMPILE ERROR — x is int32
 ```
@@ -324,8 +324,8 @@ x = "hello";		// COMPILE ERROR — x is int32
 ### 6.5 Nullable Types
 
 ```tnt
-int x = 5;		  // cannot be null, compiler enforced
-int? y = null;	  // explicitly nullable
+int x = 5;		 // cannot be null, compiler enforced
+int? y = null;	 // explicitly nullable
 int? z = 10;		// nullable but has a value
 ```
 
@@ -334,7 +334,7 @@ int? z = 10;		// nullable but has a value
 
 ```tnt
 int? val = getResult();
-io!->print(val->toString());	 // COMPILE ERROR — might be null
+io!->print(val->toString());	// COMPILE ERROR — might be null
 
 if (val != null) {
 	io!->print(val->toString()); // fine — compiler knows non-null here
@@ -346,8 +346,8 @@ io!->print(val ?? "default");	// null coalesce
 ### 6.6 Mutation
 
 ```tnt
-mut int x = 5;	  // mutable
-int y = 10;		 // immutable by default
+mut int x = 5;	 // mutable
+int y = 10;		// immutable by default
 ```
 
 - immutable by default, `mut` opts in
@@ -748,8 +748,8 @@ Stdlib is written as real `.tnt` files that call libc at the bottom via `extern`
 ```
 main.tnt
   → io!->print()		// pure Tantrums
-	→ extern puts()	 // one FFI call to libc
-	  → libc
+	→ extern puts()	// one FFI call to libc
+	 → libc
 		→ syscall
 ```
 

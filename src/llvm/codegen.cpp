@@ -23,7 +23,7 @@ template<class... Ts> struct Overloaded : Ts... { using Ts::operator()...; };
 
 CodeGenerator::CodeGenerator(std::vector<ASTNode>& nodes)
 	: builder(context),
-	  module(std::make_unique<llvm::Module>("tantrums", context))
+	 module(std::make_unique<llvm::Module>("tantrums", context))
 {
 	this->nodes = std::move(nodes);
 }
@@ -140,7 +140,7 @@ llvm::Value* CodeGenerator::generateExpr(const ExprNode& exprNode, const std::st
 				case TokenType::TOKEN_PLUS_OPERATOR:
 					return isFloat ? builder.CreateFAdd(left, right)
 									: builder.CreateAdd(left, right);
-									 break;
+									break;
 
 				case TokenType::TOKEN_MINUS_OPERATOR:
 					return isFloat ? builder.CreateFSub(left, right)
@@ -150,12 +150,12 @@ llvm::Value* CodeGenerator::generateExpr(const ExprNode& exprNode, const std::st
 				case TokenType::TOKEN_STAR_OPERATOR:
 					return isFloat ? builder.CreateFMul(left, right)
 									: builder.CreateMul(left, right);
-									 break;
+									break;
 				
 				case TokenType::TOKEN_DIVISION_OPERATOR:
 					return isFloat ? builder.CreateFDiv(left, right)
 									: builder.CreateSDiv(left, right);
-									 break;
+									break;
 				
 				default:
 					return nullptr;
@@ -205,17 +205,17 @@ void CodeGenerator::generate(bool emitIr)
 	// currently no args
 	// llvm::FunctionType* mainType = llvm::FunctionType::get
 	// (
-	//	 builder.getInt32Ty(),
-	//	 {},
-	//	 false
+	//	builder.getInt32Ty(),
+	//	{},
+	//	false
 	// );
 
 	// llvm::Function* MainFunc = llvm::Function::Create
 	// (
-	//	 mainType, 
-	//	 llvm::Function::ExternalLinkage, 
-	//	 "main", 
-	//	 module.get()
+	//	mainType, 
+	//	llvm::Function::ExternalLinkage, 
+	//	"main", 
+	//	module.get()
 	// );
 
 	// llvm::BasicBlock* EntryBB = llvm::BasicBlock::Create(context, "entry", MainFunc);
@@ -225,13 +225,13 @@ void CodeGenerator::generate(bool emitIr)
 	// We will add dynamic extern in tanstrums also <insert_peek_emoji>
 	// llvm::FunctionType *printfType = llvm::FunctionType::get
 	// (
-	//	 builder.getInt32Ty(),			  // Return type: i32
-	//	 {builder.getPtrTy()},			  // First arg: i8* 
-	//	 true								// Is variadic: true
+	//	builder.getInt32Ty(),			 // Return type: i32
+	//	{builder.getPtrTy()},			 // First arg: i8* 
+	//	true								// Is variadic: true
 	// );
 
 	// printfFunc = 
-	//	 builder.GetInsertBlock()->getModule()->getOrInsertFunction("printf", printfType);
+	//	builder.GetInsertBlock()->getModule()->getOrInsertFunction("printf", printfType);
 
 	for (currentNode = 0; currentNode < nodes.size(); currentNode++)
 	{
@@ -260,14 +260,14 @@ void CodeGenerator::generateFunction(const FunctionDeclarationNode& functionDecl
 	// just capture them for now
 	// i dont think we will need this here at all after TypeChecker i implemented
 	bool isHeap	= functionDeclNode.isHeap;
-	bool isIo	 = functionDeclNode.isIo;
+	bool isIo	= functionDeclNode.isIo;
 	bool isThrows = functionDeclNode.isThrows;
 	bool isPure	= functionDeclNode.isPure;
 	bool isMut	= functionDeclNode.isMut;
 	bool isAuto	= functionDeclNode.isAuto;
 
 	llvm::Type* result = getLlvmType(returnType);
-//	 std::println(stderr, "[Debug] returnType='{}' -> result={}", returnType, (void*)result);
+//	std::println(stderr, "[Debug] returnType='{}' -> result={}", returnType, (void*)result);
 
 	// No arg and variadic arg support for now
 	llvm::FunctionType* functionType = llvm::FunctionType::get

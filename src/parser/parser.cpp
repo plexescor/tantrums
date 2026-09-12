@@ -37,7 +37,7 @@ bool Parser::isDeclKeyword(TokenType type)
 		case TokenType::TOKEN_VOID:
 		case TokenType::TOKEN_IO:		
 		case TokenType::TOKEN_THROWS:	
-		case TokenType::TOKEN_PURE:	  
+		case TokenType::TOKEN_PURE:	 
 			return true;
 		default:
 			return false;
@@ -192,7 +192,7 @@ std::optional<ASTNode> Parser::parseFunctionDeclaration()
 		{
 			case TokenType::TOKEN_MUT:	isMut	= true; break;
 			case TokenType::TOKEN_HEAP:	isHeap	= true; break;
-			case TokenType::TOKEN_IO:	 isIo	 = true; break;
+			case TokenType::TOKEN_IO:	isIo	= true; break;
 			case TokenType::TOKEN_THROWS: isThrows = true; break;
 			case TokenType::TOKEN_PURE:	isPure	= true; break;
 			case TokenType::TOKEN_NULLABLE_OPERATOR: returnsNull = true; break;
@@ -236,11 +236,11 @@ std::optional<ASTNode> Parser::parseFunctionDeclaration()
 
 	return ASTNode {
 	FunctionDeclarationNode {
-		.type	 = TypeNode { .name = typeToken.value, .isNullable = false },
-		.name	 = nameToken.value,
+		.type	= TypeNode { .name = typeToken.value, .isNullable = false },
+		.name	= nameToken.value,
 		.returnsNull = returnsNull,
 		.isHeap	= isHeap,
-		.isIo	 = isIo,
+		.isIo	= isIo,
 		.isThrows = isThrows,
 		.isPure	= isPure,
 		.isMut	= isMut,
@@ -448,39 +448,40 @@ std::optional<ASTNode> Parser::parseVariableDeclaration()
 LiteralNode Parser::parseLiteral(const Token& tok, bool isNegative)
 {
 	switch (tok.type)
-	 {
-		  case TokenType::TOKEN_INTEGER_LITERAL:
+	{
+		 case TokenType::TOKEN_INTEGER_LITERAL:
 				return LiteralNode { .value = UntypedInt { std::stoll(tok.value) }, .isNegative = isNegative };
 
-		  case TokenType::TOKEN_FLOAT_LITERAL:
+		 case TokenType::TOKEN_FLOAT_LITERAL:
 				return LiteralNode { .value = UntypedFloat { std::stod(tok.value) }, .isNegative = isNegative };
 
-		  case TokenType::TOKEN_STRING_LITERAL:
+		 case TokenType::TOKEN_STRING_LITERAL:
 				return LiteralNode { .value = tok.value };
 
-		  case TokenType::TOKEN_BOOL_LITERAL:
+		 case TokenType::TOKEN_BOOL_LITERAL:
 				return LiteralNode { .value = tok.value == "true" };
-	 }
+	}
 	return LiteralNode { .value = tok.value };
 }
 
-// LiteralNode Parser::parseLiteral(const Token& tok)
-// {
-// 	switch (tok.type)
-//	  {
-//			case TokenType::TOKEN_INTEGER_LITERAL:
-//				 return LiteralNode { .value = UntypedInt { std::stoll(tok.value) } };
+std::optional<ASTNode> Parser::parseFunctionCall()
+{
+	// get functino call name and consume the identifier
+	Token token = current();
+	advance();
 
-//			case TokenType::TOKEN_FLOAT_LITERAL:
-//				 return LiteralNode { .value = UntypedFloat { std::stod(tok.value) } };
+	expect(TokenType::TOKEN_LEFT_PARENTHESIS);
+	expect(TokenType::TOKEN_RIGHT_PARENTHESIS);
+	expect(TokenType::TOKEN_SEMICOLON);
 
-//			case TokenType::TOKEN_STRING_LITERAL:
-//				 return LiteralNode { .value = tok.value };
-
-//			case TokenType::TOKEN_BOOL_LITERAL:
-//				 return LiteralNode { .value = tok.value == "true" };
-//	  }
-// }
+	return ASTNode
+	(
+		FunctionCallNode
+		{
+			.name = token.value
+		}
+	);
+}
 
 std::optional<ASTNode> Parser::parseStatement()
 {
@@ -492,29 +493,34 @@ std::optional<ASTNode> Parser::parseStatement()
 		{
 			return parsePrint();
 		}
+		// if there is a parenthesis after identifier, its a function call
+		else if (tokens[currentPosition + 1].type == TokenType::TOKEN_LEFT_PARENTHESIS)
+		{
+			return parseFunctionCall();
+		}
 	}
 
 	else if (isDeclKeyword(token.type))
 	{
 		size_t offset = 0;
-	// std::println("[DEBUG] starting scan from: {} type: {}", 
+		// std::println("[DEBUG] starting scan from: {} type: {}", 
 		// tokens[currentPosition].value,
 		// tokenTypeToString(tokens[currentPosition].type));
 
-	while (tokens[currentPosition + offset].type != TokenType::TOKEN_IDENTIFIER)
-	{
-		// std::println("[DEBUG] offset={} token={}", offset, tokens[currentPosition + offset].value);
-		offset++;
-	}
+		while (tokens[currentPosition + offset].type != TokenType::TOKEN_IDENTIFIER)
+		{
+			// std::println("[DEBUG] offset={} token={}", offset, tokens[currentPosition + offset].value);
+			offset++;
+		}
 
-	// std::println("[DEBUG] found identifier: {} next: {}",
+		// std::println("[DEBUG] found identifier: {} next: {}",
 		// tokens[currentPosition + offset].value,
 		// tokenTypeToString(tokens[currentPosition + offset + 1].type));
 
-	if (tokens[currentPosition + offset + 1].type == TokenType::TOKEN_LEFT_PARENTHESIS)
-		return parseFunctionDeclaration();
-	else
-		return parseVariableDeclaration();
+		if (tokens[currentPosition + offset + 1].type == TokenType::TOKEN_LEFT_PARENTHESIS)
+			return parseFunctionDeclaration();
+		else
+			return parseVariableDeclaration();
 
 	}
 
