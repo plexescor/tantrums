@@ -48,6 +48,28 @@ The long-term goal is to make Tantrums capable enough to port a real application
 
 ---
 
+## Aim for v0.1.0
+
+### What I want working
+
+| Feature | Status |
+|---|---|
+| Hardcoded `print`  | ✅ Done |
+| Variable declaration | ✅ Done |
+| Variable usage in expressions | ✅ Done |
+| Basic arithmetic (`+`, `-`, `*`, `/`, unary `-`, grouping) | ✅ Done |
+| Function declaration | ✅ Done |
+| Function calls (no args, no return) | ✅ Done |
+| Function arguments | 🔧 WIP |
+| Function return values | 🔧 WIP |
+| `if` / `else` | ❌ Not started |
+| `for` loop | ❌ Not started |
+| `while` loop | ❌ Not started |
+
+Once all of the above are working and tested, v0.1.0 is out.
+
+---
+
 ## Working example
 
 The compiler currently compiles `.tnt` files with functions declarations and calls, variable declarations, and arithmetic expressions:
