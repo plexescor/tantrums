@@ -131,7 +131,10 @@ llvm::Value* CodeGenerator::generateExpr(const ExprNode& exprNode, const std::st
 
 			TokenType opToken = binaryNode.operation;
 
-			bool isFloat = resolvedType == "float32" || resolvedType == "float64" ? true : false;
+			bool isFloat = false;
+			if (resolvedType == "float32" || resolvedType == "float64" || resolvedType == "untypedFloat")
+				isFloat = true;
+				
 			switch (opToken)
 			{
 				case TokenType::TOKEN_PLUS_OPERATOR:
