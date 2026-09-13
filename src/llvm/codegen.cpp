@@ -122,6 +122,11 @@ llvm::Value* CodeGenerator::generateExpr(const ExprNode& exprNode, const std::st
 			return builder.CreateLoad(getLlvmType(resolved), it->second);
 		},
 
+		[this, resolvedType](const FunctionCallNode& functionCallNode) -> llvm::Value*
+		{
+			return generateFunctionCall(functionCallNode);
+		},
+
 		[this, resolvedType](const BinaryExprNode& binaryNode) -> llvm::Value*
 		{
 			std::string resolved = resolvedType;
@@ -305,6 +310,10 @@ void CodeGenerator::generateFunction(const FunctionDeclarationNode& functionDecl
 			{ 
 				generatePrint(print); 
 			},
+			[this](const ReturnNode& retNode)
+			{ 
+				generateReturn(retNode); 
+			},
 			// Single threaded so fine, though my reasoning can be wrong
 			[this, &function](const VariableDeclarationNode& varDecl)
 			{
@@ -324,25 +333,53 @@ void CodeGenerator::generateFunction(const FunctionDeclarationNode& functionDecl
 		}, node);
 	}
 
-	// return
-	if (returnType == "void")
-		builder.CreateRetVoid();
-	else
-		builder.CreateRet(llvm::ConstantInt::get(result, 0));
+	// if no return
+	llvm::BasicBlock* currentBB = builder.GetInsertBlock();
+	if (currentBB && !currentBB->getTerminator())
+	{
+		if (returnType == "void")
+			builder.CreateRetVoid();
+		else
+		{
+			std::println(stderr, "[Codegen warning] Function '{}' missing return!", name);
+			builder.CreateUnreachable();
+		}
+	}
 }
 
-void CodeGenerator::generateFunctionCall(const FunctionCallNode &fnCall)
+llvm::Value* CodeGenerator::generateFunctionCall(const FunctionCallNode &fnCall)
 {
+	//-----------------TEST VALUE-----------------------
+	//----------------------------------------
 	auto it = namedValues_Functions.find(fnCall.name);
 	if (it == namedValues_Functions.end())
 	{
 		std::println(stderr, "[Codegen error] Function '{}' not found!", fnCall.name);
-		return;
+		return nullptr;
 	}
 
 	llvm::Function* function = it->second.first;
 	llvm::FunctionType* type = it->second.second;
-	builder.CreateCall(type, function, {});
+	return builder.CreateCall(type, function, {});
+}
+
+void CodeGenerator::generateReturn(const ReturnNode &retNode)
+{
+	std::string returnType_Str = retNode.type.name;
+	llvm::Value* returnExpression = generateExpr(retNode.returnExpression, returnType_Str);
+	std::println("Return type codegen: '{}'", returnType_Str);
+	// return
+	// void is not handled in type checker ~ TODO
+	if (returnType_Str == "void")
+	{
+		builder.CreateRetVoid();
+		// return;
+	}
+	else //if (returnType_Str == "int8")
+	{
+		builder.CreateRet(returnExpression);
+	}
+		
 }
 
 void CodeGenerator::generateVariable(const VariableDeclarationNode& varDeclNode

@@ -22,6 +22,7 @@ struct VariableDeclarationNode;
 struct PrintNode;
 struct FunctionDeclarationNode;
 struct FunctionCallNode;
+struct ReturnNode;
 
 // int32 x = y; its a var, function calls handled
 struct IdentifierNode;
@@ -37,8 +38,17 @@ struct BinaryExprNode;
 struct UnaryExprNode;
 
 // ASTNode defined early so structs can use it
-using ASTNode = std::variant<VariableDeclarationNode, PrintNode, FunctionDeclarationNode, FunctionCallNode>;
-using ExprNode = std::variant<LiteralNode, IdentifierNode, BinaryExprNode, UnaryExprNode>;
+using ASTNode = std::variant<VariableDeclarationNode, 
+							PrintNode, 
+							FunctionDeclarationNode, 
+							FunctionCallNode,
+							ReturnNode>;
+
+using ExprNode = std::variant<LiteralNode, 
+							IdentifierNode, 
+							BinaryExprNode, 
+							UnaryExprNode,
+							FunctionCallNode>;
 
 struct LiteralNode
 {
@@ -100,6 +110,12 @@ struct FunctionDeclarationNode
 struct FunctionCallNode
 {
 	std::string name;
+};
+
+struct ReturnNode
+{
+	TypeNode type;
+	ExprNode returnExpression;
 };
 
 struct VariableDeclarationNode

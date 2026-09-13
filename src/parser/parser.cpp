@@ -160,6 +160,33 @@ std::optional<ASTNode> Parser::parsePrint()
 	
 }
 
+std::optional<ASTNode> Parser::parseReturn()
+{
+    advance();
+
+	std::optional<ExprNode> expression = parseExpr();
+	if (!expression.has_value())
+	{
+		hadError = true;
+		std::println(stderr,
+			 "[Parser Error] Return expression does not have any value at line: {}", 
+			 current().line);
+		return std::nullopt;
+	}
+
+	expect(TokenType::TOKEN_SEMICOLON);
+	return ASTNode
+	{
+		// resolved types willl be handled by the type checker
+		// it will populate them
+		ReturnNode
+		{
+			.type = TypeNode { .name = "" },
+			.returnExpression = std::move(*expression)
+		}
+	};
+}
+
 bool Parser::isAnnotationKeyword(TokenType type)
 {
 	switch (type)
@@ -307,6 +334,16 @@ std::optional<ExprNode> Parser::parsePrimary()
 			break;
 
 		case TokenType::TOKEN_IDENTIFIER:
+			// its a functino call if we find the left parenthesis
+			if (tokens[currentPosition + 1].type == TokenType::TOKEN_LEFT_PARENTHESIS)
+			{
+				// Consume both parenthesis
+				advance();
+				advance();
+				advance();
+				finalNode = ExprNode( FunctionCallNode { .name = token.value } );
+				break;
+			}
 			advance();
 			finalNode = ExprNode( IdentifierNode { .name = token.value } );
 			break;
@@ -486,6 +523,7 @@ std::optional<ASTNode> Parser::parseFunctionCall()
 std::optional<ASTNode> Parser::parseStatement()
 {
 	Token token = current();
+	std::println("Token: {}", token.value);
 	if (token.type == TokenType::TOKEN_IDENTIFIER)
 	{
 		const std::string& value = token.value;
@@ -522,6 +560,12 @@ std::optional<ASTNode> Parser::parseStatement()
 		else
 			return parseVariableDeclaration();
 
+	}
+
+	else if (token.type == TokenType::TOKEN_RETURN || token.value == "return")
+	{
+
+		return parseReturn();
 	}
 
 	hadError = true;

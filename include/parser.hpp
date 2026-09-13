@@ -25,8 +25,9 @@ class Parser
 		void synchronize();
 		LiteralNode parseLiteral(const Token& tok, bool isNegative = false);
 
-		std::optional<ASTNode> parseStatement();
 		std::optional<ASTNode> parsePrint();
+		std::optional<ASTNode> parseReturn();
+		std::optional<ASTNode> parseStatement();
 		std::optional<ASTNode> parseFunctionCall();
 		std::optional<ASTNode> parseVariableDeclaration();
 		std::optional<ASTNode> parseFunctionDeclaration();

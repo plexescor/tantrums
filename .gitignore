@@ -3,3 +3,4 @@ out
 .vscode
 CMakeUserPresets.json
 .clangd
+.vs

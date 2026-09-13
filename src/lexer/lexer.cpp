@@ -127,6 +127,10 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
 					{
 						tokens.push_back(Token(TokenType::TOKEN_RETURN, word, currentLine));
 					}
+					else if (word == "string")
+					{
+						tokens.push_back(Token(TokenType::TOKEN_STRING, word, currentLine));
+					}
 					else if (word == "pure")
 					{
 						tokens.push_back(Token(TokenType::TOKEN_PURE, word, currentLine));
@@ -222,10 +226,6 @@ bool Lexer::lexize(const std::filesystem::path& filePath)
 					else if (word == "while")
 					{
 						tokens.push_back(Token(TokenType::TOKEN_WHILE, word, currentLine));
-					}
-					else if (word == "return")
-					{
-						tokens.push_back(Token(TokenType::TOKEN_RETURN, word, currentLine));
 					}
 					else if (word == "break")
 					{

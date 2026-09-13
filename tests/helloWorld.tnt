@@ -1,12 +1,12 @@
-// Aim for next time: get return types working
-void testFunc()
+int64 testFunc()
 {
 	int64 ffjfj = 9 + 18;
+  	return ffjfj;
 }
 
 void greet()
 {
-  print("Hello World!");
+  	print("Hello World!");
 }
 
 int32 main()
@@ -16,5 +16,7 @@ int32 main()
 
 	float64 a = 59.4;
 	int8 b = 99;
-	greet();
+  	greet(); 
+  	print(testFunc() + y);
+  	return 0; 
 }

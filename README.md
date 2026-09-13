@@ -45,6 +45,8 @@ The long-term goal is to make Tantrums capable enough to port a real application
 - Function calls working though with no args for now or no returns for now
 - Expressions working
 - Variable declaration and usage and funciton declarations working
+- Operations on variables / print / literals working
+- Function returning working
 
 ---
 
@@ -60,11 +62,12 @@ The long-term goal is to make Tantrums capable enough to port a real application
 | Basic arithmetic (`+`, `-`, `*`, `/`, unary `-`, grouping) | ✅ Done |
 | Function declaration | ✅ Done |
 | Function calls (no args, no return) | ✅ Done |
+| Function return values | ✅ Done |
 | Function arguments | 🔧 WIP |
-| Function return values | 🔧 WIP |
 | `if` / `else` | ❌ Not started |
 | `for` loop | ❌ Not started |
 | `while` loop | ❌ Not started |
+| Actual `test` cases | ❌ Not started |
 
 Once all of the above are working and tested, v0.1.0 is out.
 
@@ -75,9 +78,10 @@ Once all of the above are working and tested, v0.1.0 is out.
 The compiler currently compiles `.tnt` files with functions declarations and calls, variable declarations, and arithmetic expressions:
 
 ```tnt
-void testFunc()
+int64 testFunc()
 {
 	int64 ffjfj = 9 + 18;
+  return ffjfj;
 }
 
 void greet()
@@ -92,7 +96,9 @@ int32 main()
 
 	float64 a = 59.4;
 	int8 b = 99;
-  greet();  
+  greet(); 
+  print(testFunc() + y);
+  return 0; 
 }
 ```
 

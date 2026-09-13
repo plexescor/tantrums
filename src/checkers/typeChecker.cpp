@@ -91,6 +91,11 @@ std::string TypeChecker::resolveExprType(const ExprNode& node)
 				return resolveIdentifier(identifierNode);
 		 },
 
+		 [this](const FunctionCallNode& functionCallNode) -> std::string
+		 {
+				return resolveFunction(functionCallNode);
+		 },
+
 		 [this](const BinaryExprNode& binaryNode) -> std::string
 		 {
 				// Resolve the left and right side nodes
@@ -163,6 +168,24 @@ std::string TypeChecker::resolveIdentifier(const IdentifierNode& node)
 	return type_S;
 }
 
+
+std::string TypeChecker::resolveFunction(const FunctionCallNode &node)
+{
+	std::string name = node.name;
+
+	std::optional<std::string> returnType = symbols.lookupFunction(name);
+	std::string type_S = "";
+	if (!returnType.has_value())
+	{
+		 errorBuffer.push_back(std::format("Function '{}' is not defined!", name));
+		 return "error";
+		 type_S = returnType.value();
+	}
+	std::println("Symbol: {}", returnType.value());
+	type_S = returnType.value();
+	return type_S;
+}
+
 void TypeChecker::checkFunctionDeclaration(FunctionDeclarationNode& fnDecl)
 {
 	symbols.pushScope();
@@ -187,6 +210,10 @@ void TypeChecker::checkFunctionDeclaration(FunctionDeclarationNode& fnDecl)
 				[this](FunctionCallNode& fnCall)
 				{
 					checkFunctionCall(fnCall);
+				},
+				[this, returnType](ReturnNode& retExpr)
+				{
+					checkReturnExpression(retExpr, returnType);
 				},
 				[this](PrintNode& print)
 				{
@@ -306,6 +333,7 @@ void TypeChecker::checkVariableDeclaration(VariableDeclarationNode& varDecl)
 	}
 }
 
+// For FunctionCallNode member of ASTNode
 void TypeChecker::checkFunctionCall(FunctionCallNode &fnCall)
 {
 	// Future: we can check if we are discarding the returns of a function which is not void
@@ -316,6 +344,38 @@ void TypeChecker::checkFunctionCall(FunctionCallNode &fnCall)
 		errorBuffer.push_back(std::format("Function '{}' does not exist!", name));
 		return;
 	}
+}
+
+void TypeChecker::checkReturnExpression(ReturnNode& retExpr, std::string_view expectedReturn)
+{
+	// Get the final type of the return expression
+	// and see if it matches the function's return type
+	std::string resolvedReturn = resolveExprType(retExpr.returnExpression);
+	std::string finalType = getFinalType_Literal(resolvedReturn);
+
+	//Give void a special case as i couldnt find a more correct one
+	if (expectedReturn == "void")
+	{
+		std::println("Expected return is void!");
+		finalType = "void";
+	}
+
+	if (expectedReturn != finalType)
+	{
+		errorBuffer.push_back(std::format(
+			"Expected return type '{}' does not match the resolved type '{}'!", 
+			expectedReturn, finalType));
+		return;
+	}
+	retExpr.type.name = finalType;
+}
+
+std::string TypeChecker::getFinalType_Literal(std::string resolvedType)
+{
+	// int32 and float32 are default.. for now
+	if (resolvedType == "untypedInt") return "int32";
+	else if (resolvedType == "untypedFloat") return "float32";
+	return resolvedType;
 }
 
 void TypeChecker::flushErrorBuffer()

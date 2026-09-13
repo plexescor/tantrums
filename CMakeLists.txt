@@ -43,18 +43,12 @@ target_link_directories(tantrums
 llvm_map_components_to_libnames(LLVM_LIBS core support irreader native)
 target_link_libraries(tantrums PRIVATE ${LLVM_LIBS})
 
-# LLVM compile definitions
-target_compile_definitions(tantrums
-	PRIVATE
-		${LLVM_DEFINITIONS}
-)
+# LLVM preprocessor definitions — use add_definitions so VS IntelliSense
+# can parse the -D prefixed macros correctly (avoids E0992)
+add_definitions(${LLVM_DEFINITIONS})
 
 if(MSVC)
-
-	target_compile_options(tantrums PRIVATE)
-
+	target_compile_options(tantrums PRIVATE /W4)
 else()
-
-	target_compile_options(tantrums PRIVATE)
-
+	target_compile_options(tantrums PRIVATE -Wall -Wextra -Wpedantic)
 endif()
