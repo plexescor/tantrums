@@ -11,7 +11,7 @@
 
 template<class... Ts> struct Overloaded : Ts... { using Ts::operator()...; };
 
-static SymbolTable symbols;
+SymbolTable symbols;
 
 bool TypeChecker::fitsInType(int64_t value, const std::string& type)
 {
