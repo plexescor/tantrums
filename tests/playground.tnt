@@ -1,0 +1,12 @@
+int32 add(string a)
+{
+    print("Hello!" + a);
+    return 67;
+}
+
+int32 main()
+{
+    int32 result = add("Hello");
+    print(result);
+    return 0;
+}

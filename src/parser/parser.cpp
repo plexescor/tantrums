@@ -237,9 +237,41 @@ std::optional<ASTNode> Parser::parseFunctionDeclaration()
 	// advance();
 
 	Token nameToken = expect(TokenType::TOKEN_IDENTIFIER);
-	//No args currently
 	expect(TokenType::TOKEN_LEFT_PARENTHESIS);
-	expect(TokenType::TOKEN_RIGHT_PARENTHESIS);
+	// Handle args
+
+	std::vector<ParameterNode> params;
+
+	if (current().type == TokenType::TOKEN_RIGHT_PARENTHESIS)
+	{
+		expect(TokenType::TOKEN_RIGHT_PARENTHESIS);
+	}
+	else
+	{
+		// example
+		// (int32 name, int32 type)
+		// Parse args
+		while(current().type != TokenType::TOKEN_RIGHT_PARENTHESIS)
+		{
+			Token typeToken = current();
+			advance();
+			Token nameToken = current();
+			advance();
+
+			params.push_back(
+				ParameterNode
+				{
+					.type = TypeNode { .name = typeToken.value },
+					.name = IdentifierNode { .name = nameToken.value }
+				}
+			);
+
+			if (current().type == TokenType::TOKEN_RIGHT_PARENTHESIS) break;
+			expect(TokenType::TOKEN_COMMA);
+
+		}
+		expect(TokenType::TOKEN_RIGHT_PARENTHESIS);
+	}
 	expect(TokenType::TOKEN_LEFT_BRACE);
 
 	std::vector<ASTNode> body;
@@ -272,7 +304,8 @@ std::optional<ASTNode> Parser::parseFunctionDeclaration()
 		.isPure	= isPure,
 		.isMut	= isMut,
 		.isAuto	= isAuto,
-		.body	= std::move(body)
+		.body	= std::move(body),
+		.params = std::move(params)
 	}};
 }
 
@@ -337,11 +370,29 @@ std::optional<ExprNode> Parser::parsePrimary()
 			// its a functino call if we find the left parenthesis
 			if (tokens[currentPosition + 1].type == TokenType::TOKEN_LEFT_PARENTHESIS)
 			{
-				// Consume both parenthesis
+				// Consume identifier
 				advance();
 				advance();
-				advance();
-				finalNode = ExprNode( FunctionCallNode { .name = token.value } );
+				std::vector<ExprNode> args;
+				if (current().type == TokenType::TOKEN_RIGHT_PARENTHESIS)
+				{
+					expect(TokenType::TOKEN_RIGHT_PARENTHESIS);
+				}
+				else
+				{
+					// example
+					// (userName, age)
+					// Parse args
+					while(current().type != TokenType::TOKEN_RIGHT_PARENTHESIS)
+					{
+						std::optional<ExprNode> expression = parseExpr();
+						if (expression.has_value()) args.push_back(std::move(expression.value()));
+						if (current().type == TokenType::TOKEN_RIGHT_PARENTHESIS) break;
+						expect(TokenType::TOKEN_COMMA);
+					}
+					expect(TokenType::TOKEN_RIGHT_PARENTHESIS);
+				}
+				finalNode = ExprNode( FunctionCallNode { .name = token.value, .arguments = std::move(args) } );
 				break;
 			}
 			advance();
@@ -497,25 +548,47 @@ LiteralNode Parser::parseLiteral(const Token& tok, bool isNegative)
 
 		 case TokenType::TOKEN_BOOL_LITERAL:
 				return LiteralNode { .value = tok.value == "true" };
+		 default:
+		 	break;
 	}
 	return LiteralNode { .value = tok.value };
 }
 
 std::optional<ASTNode> Parser::parseFunctionCall()
 {
+	std::cerr << "WTF" << std::endl;
 	// get functino call name and consume the identifier
 	Token token = current();
 	advance();
 
+	std::vector<ExprNode> args;
 	expect(TokenType::TOKEN_LEFT_PARENTHESIS);
-	expect(TokenType::TOKEN_RIGHT_PARENTHESIS);
+	if (current().type == TokenType::TOKEN_RIGHT_PARENTHESIS)
+	{
+		expect(TokenType::TOKEN_RIGHT_PARENTHESIS);
+	}
+	else
+	{
+		// example
+		// (userName, age)
+		// Parse args
+		while(current().type != TokenType::TOKEN_RIGHT_PARENTHESIS)
+		{
+			std::optional<ExprNode> expression = parseExpr();
+			if (expression.has_value()) args.push_back(std::move(expression.value()));
+			if (current().type == TokenType::TOKEN_RIGHT_PARENTHESIS) break;
+			expect(TokenType::TOKEN_COMMA);
+		}
+		expect(TokenType::TOKEN_RIGHT_PARENTHESIS);
+	}
 	expect(TokenType::TOKEN_SEMICOLON);
 
 	return ASTNode
 	(
 		FunctionCallNode
 		{
-			.name = token.value
+			.name = token.value,
+			.arguments = std::move(args) // ?
 		}
 	);
 }

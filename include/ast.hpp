@@ -89,6 +89,11 @@ struct TypeNode
 	bool isNullable = false; // the ? op
 };
 
+struct ParameterNode
+{
+	TypeNode type;
+	IdentifierNode name;
+};
 
 struct FunctionDeclarationNode
 {
@@ -104,12 +109,13 @@ struct FunctionDeclarationNode
 	bool isAuto	= false;
 
 	std::vector<ASTNode> body;
+	std::vector<ParameterNode> params;
 };
 
-// No args for now
 struct FunctionCallNode
 {
 	std::string name;
+	std::vector<ExprNode> arguments;
 };
 
 struct ReturnNode

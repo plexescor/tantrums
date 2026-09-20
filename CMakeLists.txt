@@ -34,18 +34,43 @@ target_include_directories(tantrums
 		${LLVM_INCLUDE_DIRS}
 )
 
-# LLVM library location
-target_link_directories(tantrums
-	PRIVATE
-		${LLVM_LIBRARY_DIRS}
-)
+# LLVM preprocessor definitions
+target_compile_definitions(tantrums PRIVATE ${LLVM_DEFINITIONS})
 
-llvm_map_components_to_libnames(LLVM_LIBS core support irreader native)
-target_link_libraries(tantrums PRIVATE ${LLVM_LIBS})
+if(WIN32)
+	# Windows: split component libs exist, link individually
+	llvm_map_components_to_libnames(LLVM_LIBS
+		core support irreader native
+		X86CodeGen X86AsmParser X86Desc X86Disassembler X86Info
+	)
+	target_link_directories(tantrums PRIVATE ${LLVM_LIBRARY_DIRS})
+	target_link_libraries(tantrums PRIVATE ${LLVM_LIBS})
+else()
+	# Linux/Arch: unified lib (-lLLVM-22), use llvm-config directly
+	execute_process(
+		COMMAND llvm-config --libs all
+		OUTPUT_VARIABLE LLVM_LIBS_RAW
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
+	execute_process(
+		COMMAND llvm-config --ldflags
+		OUTPUT_VARIABLE LLVM_LD_FLAGS_RAW
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
+	execute_process(
+		COMMAND llvm-config --system-libs
+		OUTPUT_VARIABLE LLVM_SYSTEM_LIBS_RAW
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
 
-# LLVM preprocessor definitions — use add_definitions so VS IntelliSense
-# can parse the -D prefixed macros correctly (avoids E0992)
-add_definitions(${LLVM_DEFINITIONS})
+	# Convert space-separated flags to cmake list
+	separate_arguments(LLVM_LIBS_LIST UNIX_COMMAND "${LLVM_LIBS_RAW}")
+	separate_arguments(LLVM_LD_FLAGS_LIST UNIX_COMMAND "${LLVM_LD_FLAGS_RAW}")
+	separate_arguments(LLVM_SYSTEM_LIBS_LIST UNIX_COMMAND "${LLVM_SYSTEM_LIBS_RAW}")
+
+	target_link_options(tantrums PRIVATE ${LLVM_LD_FLAGS_LIST})
+	target_link_libraries(tantrums PRIVATE ${LLVM_LIBS_LIST} ${LLVM_SYSTEM_LIBS_LIST})
+endif()
 
 if(MSVC)
 	target_compile_options(tantrums PRIVATE /W4)

@@ -124,7 +124,7 @@ llvm::Value* CodeGenerator::generateExpr(const ExprNode& exprNode, const std::st
 
 		[this, resolvedType](const FunctionCallNode& functionCallNode) -> llvm::Value*
 		{
-			return generateFunctionCall(functionCallNode);
+			return generateFunctionCall(const_cast<FunctionCallNode&>(functionCallNode));
 		},
 
 		[this, resolvedType](const BinaryExprNode& binaryNode) -> llvm::Value*
@@ -243,7 +243,7 @@ void CodeGenerator::generate(bool emitIr)
 		// std::println("Node index: {}", nodes[currentNode].index());
 		std::visit(Overloaded 
 		{
-			[this](const FunctionDeclarationNode& fnDecl)
+			[this](FunctionDeclarationNode& fnDecl)
 			{
 				generateFunction(fnDecl);	
 			},
@@ -256,8 +256,9 @@ void CodeGenerator::generate(bool emitIr)
 	if (emitIr) module->print(llvm::outs(), nullptr);
 }
 
-void CodeGenerator::generateFunction(const FunctionDeclarationNode& functionDeclNode)
+void CodeGenerator::generateFunction(FunctionDeclarationNode& functionDeclNode)
 {
+	namedValues_Variables.clear();
 	std::string returnType = functionDeclNode.type.name;
 	std::string name = functionDeclNode.name;
 	const std::vector<ASTNode>& body = functionDeclNode.body;
@@ -272,13 +273,19 @@ void CodeGenerator::generateFunction(const FunctionDeclarationNode& functionDecl
 	bool isAuto	= functionDeclNode.isAuto;
 
 	llvm::Type* result = getLlvmType(returnType);
-//	std::println(stderr, "[Debug] returnType='{}' -> result={}", returnType, (void*)result);
 
-	// No arg and variadic arg support for now
+	std::vector<llvm::Type*> params = {};
+	for (ParameterNode& param : functionDeclNode.params)
+	{
+		// std::string resolvedType = 
+
+		params.push_back(getLlvmType(param.type.name));
+	}
+
 	llvm::FunctionType* functionType = llvm::FunctionType::get
 	(
 		result,
-		{},
+		params,
 		false
 	);
 
@@ -293,13 +300,27 @@ void CodeGenerator::generateFunction(const FunctionDeclarationNode& functionDecl
 	llvm::BasicBlock* EntryBB = llvm::BasicBlock::Create(context, "entry", function);
 	builder.SetInsertPoint(EntryBB);
 
+	// GOd bless ai for this block of code
+	unsigned idx = 0;
+	for (llvm::Argument& arg : function->args())
+	{
+		ParameterNode& param = functionDeclNode.params[idx++];
+		arg.setName(param.name.name);
+
+		// alloca in entry block for each param
+		llvm::IRBuilder<> tempBuilder(&function->getEntryBlock(), function->getEntryBlock().begin());
+		llvm::AllocaInst* alloca = tempBuilder.CreateAlloca(arg.getType(), nullptr, param.name.name);
+		builder.CreateStore(&arg, alloca);
+		namedValues_Variables[param.name.name] = alloca;
+	}
+
 	// init printf for this function's use
 	llvm::FunctionType* printfType = llvm::FunctionType::get(
 		builder.getInt32Ty(), {builder.getPtrTy()}, true
 	);
 	printfFunc = module->getOrInsertFunction("printf", printfType);
 
-	namedValues_Functions[name] = { function, functionType };
+	namedValues_Functions[name] = { {function, functionType}, functionDeclNode.params };
 
 	// emit body
 	for (const ASTNode& node : body)
@@ -328,7 +349,7 @@ void CodeGenerator::generateFunction(const FunctionDeclarationNode& functionDecl
 			},
 			[this](const FunctionCallNode& fnCall) 
 			{ 
-				generateFunctionCall(fnCall); 
+				generateFunctionCall(const_cast<FunctionCallNode&> (fnCall)); 
 			},  
 		}, node);
 	}
@@ -347,10 +368,8 @@ void CodeGenerator::generateFunction(const FunctionDeclarationNode& functionDecl
 	}
 }
 
-llvm::Value* CodeGenerator::generateFunctionCall(const FunctionCallNode &fnCall)
+llvm::Value* CodeGenerator::generateFunctionCall(FunctionCallNode &fnCall)
 {
-	//-----------------TEST VALUE-----------------------
-	//----------------------------------------
 	auto it = namedValues_Functions.find(fnCall.name);
 	if (it == namedValues_Functions.end())
 	{
@@ -358,9 +377,15 @@ llvm::Value* CodeGenerator::generateFunctionCall(const FunctionCallNode &fnCall)
 		return nullptr;
 	}
 
-	llvm::Function* function = it->second.first;
-	llvm::FunctionType* type = it->second.second;
-	return builder.CreateCall(type, function, {});
+	llvm::Function* function = it->second.first.first;
+	llvm::FunctionType* type = it->second.first.second;
+	std::vector<llvm::Value*> args= {};
+	for (ExprNode& arg : fnCall.arguments)
+	{
+		std::string resolvedType = typeChecker->resolveExprType(arg);
+		args.push_back(generateExpr(arg, resolvedType));
+	}
+	return builder.CreateCall(type, function, args);
 }
 
 void CodeGenerator::generateReturn(const ReturnNode &retNode)

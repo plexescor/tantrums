@@ -92,7 +92,8 @@ std::string TypeChecker::resolveExprType(const ExprNode& node)
 		 },
 
 		 [this](const FunctionCallNode& functionCallNode) -> std::string
-		 {
+		 {	
+				checkFunctionCall(const_cast<FunctionCallNode&>(functionCallNode));
 				return resolveFunction(functionCallNode);
 		 },
 
@@ -173,16 +174,16 @@ std::string TypeChecker::resolveFunction(const FunctionCallNode &node)
 {
 	std::string name = node.name;
 
-	std::optional<std::string> returnType = symbols.lookupFunction(name);
+	std::optional<std::pair<std::string, std::vector<ParameterNode>>> returnType = symbols.lookupFunction(name);
 	std::string type_S = "";
 	if (!returnType.has_value())
 	{
 		 errorBuffer.push_back(std::format("Function '{}' is not defined!", name));
 		 return "error";
-		 type_S = returnType.value();
+		 type_S = returnType.value().first;
 	}
-	std::println("Symbol: {}", returnType.value());
-	type_S = returnType.value();
+	std::println("Symbol: {}", returnType.value().first);
+	type_S = returnType.value().first;
 	return type_S;
 }
 
@@ -193,10 +194,19 @@ void TypeChecker::checkFunctionDeclaration(FunctionDeclarationNode& fnDecl)
 	// Register function decl in the symbols
 	std::string name = fnDecl.name;
 	std::string returnType = fnDecl.type.name;
-	symbols.declareFunction(name, returnType);
+	symbols.declareFunction(name, returnType, fnDecl.params);
 
+	for (ParameterNode& param : fnDecl.params)
+	{
+		std::string name = param.name.name;
+		std::string type = param.type.name;
+		// not mut support for now
+		symbols.declare(name, type, false);
+	} 
+	
 	for (ASTNode& node : fnDecl.body)
 	{
+		
 		 std::visit(Overloaded
 		 {
 				[this](FunctionDeclarationNode& fnDecl)
@@ -338,12 +348,37 @@ void TypeChecker::checkFunctionCall(FunctionCallNode &fnCall)
 {
 	// Future: we can check if we are discarding the returns of a function which is not void
 	std::string name = fnCall.name;
-	std::optional<std::string> returnType = symbols.lookupFunction(name);
+	std::optional<std::pair<std::string, std::vector<ParameterNode>>> returnType = symbols.lookupFunction(name);
 	if (!returnType.has_value())
 	{
 		errorBuffer.push_back(std::format("Function '{}' does not exist!", name));
 		return;
 	}
+
+	size_t size_Param = returnType.value().second.size();
+	size_t size_Arg = fnCall.arguments.size();
+	if (size_Param > size_Arg) 
+	{
+		errorBuffer.push_back(std::format("Too few arguments in function call to '{}'", name));
+		return;
+	}
+	else if (size_Param < size_Arg) 
+	{
+		errorBuffer.push_back(std::format("Too many arguments in function call to '{}'", name));
+		return;
+	}
+	
+	for (size_t i = 0; i < size_Arg; i++)
+	{
+		std::string resolvedType = getFinalType_Literal(resolveExprType(fnCall.arguments[i]));
+		std::string expectedType = returnType.value().second[i].type.name;
+		// This looks so cursed
+		if (resolvedType != expectedType)
+		{
+			errorBuffer.push_back(std::format("The argument type '{}' doesn't match the parameter type '{}'", resolvedType, expectedType));
+		}
+	}
+	
 }
 
 void TypeChecker::checkReturnExpression(ReturnNode& retExpr, std::string_view expectedReturn)

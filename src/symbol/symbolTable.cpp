@@ -3,7 +3,7 @@
 #include <optional>
 
 #include "symbolTable.hpp"
-
+#include "ast.hpp"
 SymbolTable::SymbolTable()
 {
 
@@ -29,9 +29,9 @@ void SymbolTable::declare(std::string& name, std::string& type, bool isMutable)
 	scopes.back()[name] = std::make_pair(type, isMutable);
 }
 
-void SymbolTable::declareFunction(std::string &name, std::string &type)
+void SymbolTable::declareFunction(std::string &name, std::string &type, std::vector<ParameterNode>& params)
 {
-	functionDeclarations[name] = type;
+	functionDeclarations[name] = { type, params };
 }
 
 std::optional<std::pair<std::string, bool>> SymbolTable::lookup(std::string& name)
@@ -45,7 +45,7 @@ std::optional<std::pair<std::string, bool>> SymbolTable::lookup(std::string& nam
 	return std::nullopt;
 }
 
-std::optional<std::string> SymbolTable::lookupFunction(std::string &name)
+std::optional<std::pair<std::string, std::vector<ParameterNode>>> SymbolTable::lookupFunction(std::string &name)
 {
     if (functionDeclarations.contains(name)) return functionDeclarations[name];
 	return std::nullopt;

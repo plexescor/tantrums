@@ -1,5 +1,19 @@
+int32 getAge()
+{
+    return 67;
+}
+
+string shit()
+{
+    return "shit";
+  }
 int32 main()
 {
     print("Hello World!");
+    int32 age = getAge();
+    print(age);
+    print(age+67);
+    print(shit());
     return 0;
 }
+

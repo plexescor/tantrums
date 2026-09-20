@@ -26,9 +26,9 @@ class CodeGenerator
 	private:
 		llvm::Type* getLlvmType(std::string& returnType);
 		llvm::Value* generateExpr(const ExprNode& exprNode, const std::string& resolvedType);
-		llvm::Value* generateFunctionCall(const FunctionCallNode& fnCall);
+		llvm::Value* generateFunctionCall(FunctionCallNode& fnCall);
 		void generatePrint(const PrintNode& printNode);
-		void generateFunction(const FunctionDeclarationNode& functionDeclNode);
+		void generateFunction(FunctionDeclarationNode& functionDeclNode);
 		void generateReturn(const ReturnNode& retNode);
 		void generateVariable(const VariableDeclarationNode& varDeclNode, llvm::Function* function);
 
@@ -37,7 +37,7 @@ class CodeGenerator
 		
 	private:
 		std::map<std::string, llvm::AllocaInst*> namedValues_Variables;
-		std::map<std::string, std::pair<llvm::Function*, llvm::FunctionType*>> namedValues_Functions;
+		std::map<std::string, std::pair<std::pair<llvm::Function*, llvm::FunctionType*>, std::vector<ParameterNode>>> namedValues_Functions;
 
 		TypeChecker* typeChecker = nullptr;	
 
