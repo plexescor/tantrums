@@ -1,19 +1,197 @@
+// ── RETURN TYPE TESTS ──────────────────────────────────────
+
+int32 ret_int()
+{
+    return 42;
+}
+
+int32 ret_neg()
+{
+    return -1;
+}
+
+int32 ret_zero()
+{
+    return 0;
+}
+
+string ret_str()
+{
+    return "hello";
+}
+
+string ret_empty_str()
+{
+    return "";
+}
+
+
+// ── BINARY OPS ─────────────────────────────────────────────
+
+int32 add(int32 a, int32 b)
+{
+    return a + b;
+}
+
+int32 sub(int32 a, int32 b)
+{
+    return a - b;
+}
+
+int32 mul(int32 a, int32 b)
+{
+    return a * b;
+}
+
+int32 div_int(int32 a, int32 b)
+{
+    return a / b;
+}
+
+
+// ── EDGE CASES ─────────────────────────────────────────────
+
+int32 add_neg()
+{
+    return -5 + -3;
+}
+
+int32 sub_neg()
+{
+    return 0 - 100;
+}
+
+int32 overflow_ish()
+{
+    return 2147483647 + 0;
+}
+
+int32 big_mul()
+{
+    return 1000 * 1000;
+}
+
+int32 div_truncate()
+{
+    return 7 / 2;
+}
+
+
+// ── EXPRESSION DEPTH ───────────────────────────────────────
+
+int32 nested_expr()
+{
+    return (2 + 3) * (4 - 1);
+}
+
+int32 deep_expr()
+{
+    return 1 + 2 + 3 + 4 + 5;
+}
+
+int32 mixed_ops()
+{
+    return 10 + 2 * 5;
+}
+
+int32 precedence_check()
+{
+    return (10 + 2) * 5;
+}
+
+
+// ── VARIABLE USAGE ─────────────────────────────────────────
+
+int32 var_basic()
+{
+    int32 x = 10;
+    return x;
+}
+
+int32 var_arith()
+{
+    int32 a = 6;
+    int32 b = 7;
+    return a * b;
+}
+
+int32 var_chain()
+{
+    int32 a = 1;
+    int32 b = a + 1;
+    int32 c = b + 1;
+    return c;
+}
+
+
+// ── FUNCTION CALL AS EXPR ──────────────────────────────────
+
+int32 call_in_expr()
+{
+    return ret_int() + 8;
+}
+
+int32 call_in_call()
+{
+    return add(ret_int(), ret_int());
+}
+
 int32 getAge()
 {
     return 67;
 }
 
-string shit()
+int32 chained_math()
 {
-    return "shit";
-  }
-int32 main()
-{
-    print("Hello World!");
     int32 age = getAge();
-    print(age);
-    print(age+67);
-    print(shit());
-    return 0;
+    return age + age;
 }
 
+
+// ── STRING RETURN ───────────────────────────────────────────
+
+string ret_str_passthrough()
+{
+    string s = ret_str();
+    return s;
+}
+
+
+// ── MAIN ───────────────────────────────────────────────────
+
+int32 main()
+{
+    print(ret_int());             // 42
+    print(ret_neg());             // -1
+    print(ret_zero());            // 0
+    print(ret_str());             // hello
+    print(ret_empty_str());       // (empty line)
+
+    print(add(10, 20));           // 30
+    print(sub(50, 8));            // 42
+    print(mul(6, 7));             // 42
+    print(div_int(10, 2));        // 5
+
+    print(add_neg());             // -8
+    print(sub_neg());             // -100
+    print(overflow_ish());        // 2147483647
+    print(big_mul());             // 1000000
+    print(div_truncate());        // 3
+
+    print(nested_expr());         // 15
+    print(deep_expr());           // 15
+    print(mixed_ops());           // 20 or 60 (precedence check)
+    print(precedence_check());    // 60
+
+    print(var_basic());           // 10
+    print(var_arith());           // 42
+    print(var_chain());           // 3
+
+    print(call_in_expr());        // 50
+    print(call_in_call());        // 84
+    print(chained_math());        // 134
+
+    print(ret_str_passthrough()); // hello
+
+    return 0;
+}

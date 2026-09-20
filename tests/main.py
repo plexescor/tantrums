@@ -42,7 +42,7 @@ def run_test(test_file_name, test_file_expected_output):
     with open(test_file_expected_output_path, "r", encoding="UTF-8") as file:
         expected_content = file.read()
 
-    if result.stdout in expected_content:
+    if result.stdout.strip() == expected_content.strip():
         print(f"Test '{test_file_name}' passed!")
     else:
         print(f"Test '{test_file_name}' failed!")
