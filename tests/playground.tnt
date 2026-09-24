@@ -1,14 +1,31 @@
-int32 test(string a)
+int64 testFunc()
 {
-    print("Hello! I received the string: ");
-    print(a);
-    print("\n");
-    return 67;
+	int64 ffjfj = 9 + 18;
+	return ffjfj;
+}
+
+void greet()
+{
+	print("Hello World!\n");
+}
+
+void testFakeConcat(string a)
+{
+	print("\nI received: ");
+	print(a);
+	print("\n");
 }
 
 int32 main()
 {
-    int32 result = test("TEST_STRING_AF");
-    print(result);
-    return 0;
+	int32 x = -5 * 1;
+	int64 y = 5 / 48 + (47488 + 38 * 37);
+
+	float64 a = 59.4;
+	int8 b = 99;
+	greet(); 
+	print(testFunc() + y);
+
+	testFakeConcat("testString");
+	return 0; 
 }

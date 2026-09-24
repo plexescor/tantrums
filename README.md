@@ -61,13 +61,13 @@ The long-term goal is to make Tantrums capable enough to port a real application
 | Variable usage in expressions | ✅ Done |
 | Basic arithmetic (`+`, `-`, `*`, `/`, unary `-`, grouping) | ✅ Done |
 | Function declaration | ✅ Done |
-| Function calls (no args, no return) | ✅ Done |
+| Function calls | ✅ Done |
 | Function return values | ✅ Done |
 | Function arguments | ✅ Done |
 | `if` / `else` | ❌ Not started |
 | `for` loop | ❌ Not started |
 | `while` loop | ❌ Not started |
-| Actual `test` cases | ❌ Not started |
+| Actual `test` cases | 🔧 WIP |
 
 Once all of the above are working and tested, v0.1.0 is out.
 
@@ -84,12 +84,19 @@ The compiler currently compiles `.tnt` files with functions declarations and cal
 int64 testFunc()
 {
 	int64 ffjfj = 9 + 18;
-  return ffjfj;
+	return ffjfj;
 }
 
 void greet()
 {
-  print("Hello World!");
+	print("Hello World!\n");
+}
+
+void testFakeConcat(string a)
+{
+	print("\nI received: ");
+	print(a);
+	print("\n");
 }
 
 int32 main()
@@ -99,36 +106,48 @@ int32 main()
 
 	float64 a = 59.4;
 	int8 b = 99;
-  greet(); 
-  print(testFunc() + y);
-  return 0; 
+	greet(); 
+	print(testFunc() + y);
+
+	testFakeConcat("testString");
+	return 0; 
 }
 ```
 
 Output (IR):
 ```tnt
-C:\Users\Plexescor\Projects\tantrums\build>Debug\tantrums.exe ..\tests\helloWorld.tnt -o TEST.obj -l hello.exe --emit-llvm-ir
-Lexing file: ..\tests\helloWorld.tnt : Progress: 0%
-Lexing took: 1 ms
-Parsing file: ..\tests\helloWorld.tnt : Progress: 20%
-[FunctionDecl] name=testFunc returnType=void null=false mut=false heap=false io=false throws=false pure=false
+C:\Users\Plexescor\Projects\tantrums\tests>..\build\Debug\tantrums.exe playground.tnt -o TEST.obj -l hello.exe --emit-llvm-ir
+Lexing file: playground.tnt : Progress: 0%
+Lexing took: 0 ms
+Parsing file: playground.tnt : Progress: 20%
+[FunctionDecl] name=testFunc returnType=int64 null=false mut=false heap=false io=false throws=false pure=false
 [FunctionDecl] name=greet returnType=void null=false mut=false heap=false io=false throws=false pure=false
+[FunctionDecl] name=testFakeConcat returnType=void null=false mut=false heap=false io=false throws=false pure=false
+Token: return
 [FunctionDecl] name=main returnType=int32 null=false mut=false heap=false io=false throws=false pure=false
-Parsing took: 0 ms
-Generating IR for: ..\tests\helloWorld.tnt : Progress: 40%
+Parsing took: 1 ms
+Generating IR for: playground.tnt : Progress: 40%
 ; ModuleID = 'tantrums'
 source_filename = "tantrums"
 target datalayout = "e-m:w-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-pc-windows-msvc"
 
-@0 = private unnamed_addr constant [13 x i8] c"Hello World!\00", align 1
-@print.format = private unnamed_addr constant [4 x i8] c"%s\0A\00", align 1
+@0 = private unnamed_addr constant [14 x i8] c"Hello World!\0A\00", align 1
+@print.format = private unnamed_addr constant [3 x i8] c"%s\00", align 1
+@1 = private unnamed_addr constant [14 x i8] c"\0AI received: \00", align 1
+@print.format.1 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
+@print.format.2 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
+@2 = private unnamed_addr constant [2 x i8] c"\0A\00", align 1
+@print.format.3 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
+@print.format.4 = private unnamed_addr constant [3 x i8] c"%d\00", align 1
+@3 = private unnamed_addr constant [11 x i8] c"testString\00", align 1
 
-define void @testFunc() {
+define i64 @testFunc() {
 entry:
   %ffjfj = alloca i64, align 8
   store i64 27, ptr %ffjfj, align 8
-  ret void
+  %0 = load i64, ptr %ffjfj, align 8
+  ret i64 %0
 }
 
 declare i32 @printf(ptr, ...)
@@ -136,6 +155,17 @@ declare i32 @printf(ptr, ...)
 define void @greet() {
 entry:
   %0 = call i32 (ptr, ...) @printf(ptr @print.format, ptr @0)
+  ret void
+}
+
+define void @testFakeConcat(ptr %a) {
+entry:
+  %a1 = alloca ptr, align 8
+  store ptr %a, ptr %a1, align 8
+  %0 = call i32 (ptr, ...) @printf(ptr @print.format.1, ptr @1)
+  %1 = load ptr, ptr %a1, align 8
+  %2 = call i32 (ptr, ...) @printf(ptr @print.format.2, ptr %1)
+  %3 = call i32 (ptr, ...) @printf(ptr @print.format.3, ptr @2)
   ret void
 }
 
@@ -150,15 +180,22 @@ entry:
   store double 0x404DB33333333333, ptr %a, align 8
   store i8 99, ptr %b, align 1
   call void @greet()
+  %0 = call i64 @testFunc()
+  %1 = load i64, ptr %y, align 8
+  %2 = add i64 %0, %1
+  %3 = call i32 (ptr, ...) @printf(ptr @print.format.4, i64 %2)
+  call void @testFakeConcat(ptr @3)
   ret i32 0
 }
-IR generation took: 7 ms
-Compilation time: 8 ms
+IR generation took: 17 ms
+Compilation time: 19 ms
 
-C:\Users\Plexescor\Projects\tantrums\build>hello.exe
-Hello world!
+C:\Users\Plexescor\Projects\tantrums\tests>hello.exe
+Hello World!
+48921
+I received: testString
 
-C:\Users\Plexescor\Projects\tantrums\build>
+C:\Users\Plexescor\Projects\tantrums\tests>
 ```
 
 ---
