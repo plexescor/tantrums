@@ -63,13 +63,16 @@ The long-term goal is to make Tantrums capable enough to port a real application
 | Function declaration | ✅ Done |
 | Function calls (no args, no return) | ✅ Done |
 | Function return values | ✅ Done |
-| Function arguments | 🔧 WIP |
+| Function arguments | ✅ Done |
 | `if` / `else` | ❌ Not started |
 | `for` loop | ❌ Not started |
 | `while` loop | ❌ Not started |
 | Actual `test` cases | ❌ Not started |
 
 Once all of the above are working and tested, v0.1.0 is out.
+
+> [!NOTE]
+> Keep in mind that "✅ Done" doesn't mean working perfectly or tested perfectly
 
 ---
 
