@@ -446,7 +446,7 @@ void CodeGenerator::generatePrint(const PrintNode& printNode)
 	// Treate booleans similar as num literals
 	if (typeChecker->validIntTypes.contains(resolvedType) || resolvedType == "bool")
 	{
-		format = builder.CreateGlobalString("%d\n", "print.format");
+		format = builder.CreateGlobalString("%d", "print.format");
 	}
 	else if (typeChecker->validFloatTypes.contains(resolvedType))
 	{
@@ -454,11 +454,11 @@ void CodeGenerator::generatePrint(const PrintNode& printNode)
 		{
 			doubleValue = builder.CreateFPExt(value, builder.getDoubleTy(), "promotedDouble");
 		}
-		format = builder.CreateGlobalString("%f\n", "print.format");
+		format = builder.CreateGlobalString("%f", "print.format");
 	}
 	else if (resolvedType == "string")
 	{
-		format = builder.CreateGlobalString("%s\n", "print.format");
+		format = builder.CreateGlobalString("%s", "print.format");
 	}
 	
 	if (doubleValue)

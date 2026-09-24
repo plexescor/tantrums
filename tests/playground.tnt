@@ -1,12 +1,14 @@
-int32 add(string a)
+int32 test(string a)
 {
-    print("Hello!" + a);
+    print("Hello! I received the string: ");
+    print(a);
+    print("\n");
     return 67;
 }
 
 int32 main()
 {
-    int32 result = add("Hello");
+    int32 result = test("TEST_STRING_AF");
     print(result);
     return 0;
 }
