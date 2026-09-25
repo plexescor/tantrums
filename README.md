@@ -64,6 +64,7 @@ The long-term goal is to make Tantrums capable enough to port a real application
 | Function calls | ✅ Done |
 | Function return values | ✅ Done |
 | Function arguments | ✅ Done |
+| Variable updation/reassignment | ✅ Done |
 | `if` / `else` | ❌ Not started |
 | `for` loop | ❌ Not started |
 | `while` loop | ❌ Not started |
