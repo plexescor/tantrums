@@ -32,22 +32,22 @@ TypeChecker::TypeChecker(std::vector<ASTNode>& astNodes)
 	// Initialize valid int and float types set
 	validIntTypes = 
 	{ 
-		 "int8",
-		 "int16",
-		 "int32",
-		 "int64",
-		 "uint8",
-		 "uint16",
-		 "uint32",
-		 "uint64",
-		 "untypedInt"
+		"int8",
+		"int16",
+		"int32",
+		"int64",
+		"uint8",
+		"uint16",
+		"uint32",
+		"uint64",
+		"untypedInt"
 	};
 
 	validFloatTypes = 
 	{
-		 "float32",
-		 "float64",
-		 "untypedFloat"
+		"float32",
+		"float64",
+		"untypedFloat"
 	};
 }
 
@@ -55,8 +55,8 @@ bool TypeChecker::check()
 {
 	for (ASTNode& node : astNodes)
 	{
-		 std::visit(Overloaded
-		 {
+		std::visit(Overloaded
+		{
 				[this](FunctionDeclarationNode& fnDecl)
 				{
 					checkFunctionDeclaration(fnDecl);
@@ -65,7 +65,7 @@ bool TypeChecker::check()
 				{
 					errorBuffer.push_back("Only function declarations are allowed in top level code");
 				},
-		 }, node);
+		}, node);
 	}
 	flushErrorBuffer();
 	return errorBuffer.empty();
@@ -75,8 +75,8 @@ std::string TypeChecker::resolveExprType(const ExprNode& node)
 {
 	return std::visit(Overloaded
 	{
-		 [](const LiteralNode& literal) -> std::string
-		 {
+		[](const LiteralNode& literal) -> std::string
+		{
 				return std::visit(Overloaded
 				{
 					[](const UntypedInt&)	{ return std::string("untypedInt"); },
@@ -84,27 +84,30 @@ std::string TypeChecker::resolveExprType(const ExprNode& node)
 					[](const std::string&)  { return std::string("string"); },
 					[](bool)					{ return std::string("bool"); }
 				}, literal.value);
-		 },
+		},
 
-		 [this](const IdentifierNode& identifierNode) -> std::string
-		 {
+		[this](const IdentifierNode& identifierNode) -> std::string
+		{		
 				return resolveIdentifier(identifierNode);
-		 },
+		},
 
-		 [this](const FunctionCallNode& functionCallNode) -> std::string
-		 {	
+		[this](const FunctionCallNode& functionCallNode) -> std::string
+		{	
 				checkFunctionCall(const_cast<FunctionCallNode&>(functionCallNode));
 				return resolveFunction(functionCallNode);
-		 },
+		},
 
-		 [this](const BinaryExprNode& binaryNode) -> std::string
-		 {
+		[this](const BinaryExprNode& binaryNode) -> std::string
+		{
 				// Resolve the left and right side nodes
 				std::string left = resolveExprType(*binaryNode.leftNode);
 				std::string right = resolveExprType(*binaryNode.rightNode);
 
 				// Check if any error occured, return immed if yes
-				if (left == "error" || right == "error") return "error";
+				if (left == "error" || right == "error") 
+				{
+					return "error";
+				}
 
 				if (validIntTypes.contains(left) && validIntTypes.contains(right))
 				{
@@ -132,10 +135,10 @@ std::string TypeChecker::resolveExprType(const ExprNode& node)
 					left, right
 				));
 				return "error";
-		 },
+		},
 
-		 [this](const UnaryExprNode& unaryNode) -> std::string
-		 {
+		[this](const UnaryExprNode& unaryNode) -> std::string
+		{
 				std::string operandType = resolveExprType(*unaryNode.operand);
 				if (operandType == "error") return "error";
 
@@ -148,7 +151,7 @@ std::string TypeChecker::resolveExprType(const ExprNode& node)
 					errorBuffer.push_back(std::format("Cannot perform a unary operation on a {}", operandType));
 					return "error";
 				}
-		 }
+		}
 	}, node);
 }
 
@@ -160,13 +163,14 @@ std::string TypeChecker::resolveIdentifier(const IdentifierNode& node)
 	std::string type_S = "";
 	if (!type.has_value())
 	{
-		 errorBuffer.push_back(std::format("Identifier {} does not exist in the current scope!", name));
-		 return "error";
-		 type_S = type.value().first;
+		errorBuffer.push_back(std::format("Identifier {} does not exist in the current scope!", name));
+		return "error";
+		type_S = type.value().first;
 	}
 	std::println("Symbol: {}", type.value().first);
 	type_S = type.value().first;
 	return type_S;
+
 }
 
 
@@ -178,9 +182,9 @@ std::string TypeChecker::resolveFunction(const FunctionCallNode &node)
 	std::string type_S = "";
 	if (!returnType.has_value())
 	{
-		 errorBuffer.push_back(std::format("Function '{}' is not defined!", name));
-		 return "error";
-		 type_S = returnType.value().first;
+		errorBuffer.push_back(std::format("Function '{}' is not defined!", name));
+		return "error";
+		type_S = returnType.value().first;
 	}
 	std::println("Symbol: {}", returnType.value().first);
 	type_S = returnType.value().first;
@@ -198,17 +202,17 @@ void TypeChecker::checkFunctionDeclaration(FunctionDeclarationNode& fnDecl)
 
 	for (ParameterNode& param : fnDecl.params)
 	{
-		std::string name = param.name.name;
+		std::string paramName = param.name.name;
 		std::string type = param.type.name;
-		// not mut support for now
-		symbols.declare(name, type, false);
+		
+		symbols.declare(paramName, type, false);
 	} 
 	
 	for (ASTNode& node : fnDecl.body)
 	{
 		
-		 std::visit(Overloaded
-		 {
+		std::visit(Overloaded
+		{
 				[this](FunctionDeclarationNode& fnDecl)
 				{
 					// checkFunctionDeclaration(fnDecl);
@@ -216,6 +220,10 @@ void TypeChecker::checkFunctionDeclaration(FunctionDeclarationNode& fnDecl)
 				[this](VariableDeclarationNode& varDecl)
 				{
 					checkVariableDeclaration(varDecl);
+				},
+				[this](VariableAssignmentNode& varAssign)
+				{
+					checkVariableAssignment(varAssign);
 				},
 				[this](FunctionCallNode& fnCall)
 				{
@@ -233,7 +241,7 @@ void TypeChecker::checkFunctionDeclaration(FunctionDeclarationNode& fnDecl)
 				{
 					errorBuffer.push_back("Only function declarations are allowed in top level code");
 				},
-		 }, node);
+		}, node);
 	}
 
 	symbols.popScope();
@@ -241,9 +249,9 @@ void TypeChecker::checkFunctionDeclaration(FunctionDeclarationNode& fnDecl)
 void TypeChecker::checkPrint(PrintNode& printNode)
 {
 	/*
-		 if the final type of an expression comes out to be a string
-		 (after conversion) and the original one was validIntTypes or validFloatTypes
-		 or bool, then its convertable
+		if the final type of an expression comes out to be a string
+		(after conversion) and the original one was validIntTypes or validFloatTypes
+		or bool, then its convertable
 	*/
 	std::string resolvedType = resolveExprType(printNode.value);
 	if (resolvedType == "error")
@@ -269,15 +277,15 @@ void TypeChecker::checkVariableDeclaration(VariableDeclarationNode& varDecl)
 {
 	if (symbols.existsInCurrentScope(varDecl.name))
 	{
-		 errorBuffer.push_back(std::format("Variable '{}' is already defined in the current scope!", varDecl.name));
-		 return;
+		errorBuffer.push_back(std::format("Variable '{}' is already defined in the current scope!", varDecl.name));
+		return;
 	}
 
 	// Resolve the type of RHS, 
 	//  std::println("[Debug] Entering checkVarDecl for '{}'", varDecl.name);
     
     std::string resolvedType = resolveExprType(varDecl.value);
-    // std::println("[Debug] '{}' resolved to '{}'", varDecl.name, resolvedType);
+    std::println("[Debug] '{}' resolved to '{}'", varDecl.name, resolvedType);
     
     std::string declaredType = varDecl.type.name;
 
@@ -285,12 +293,12 @@ void TypeChecker::checkVariableDeclaration(VariableDeclarationNode& varDecl)
 	//this doesnt work now ever since the expression parsing thing
 	if (declaredType == "auto")
 	{
-		 if (resolvedType == "untypedInt")	varDecl.type.name = "int32";  // default
-		 if (resolvedType == "untypedFloat") varDecl.type.name = "float64"; // default
-		 if (resolvedType == "string")		 varDecl.type.name = "string";
-		 if (resolvedType == "bool")			varDecl.type.name = "bool";
-		 symbols.declare(varDecl.name, varDecl.type.name, varDecl.isMutable);
-		 return;
+		if (resolvedType == "untypedInt")	varDecl.type.name = "int32";  // default
+		if (resolvedType == "untypedFloat") varDecl.type.name = "float64"; // default
+		if (resolvedType == "string")		varDecl.type.name = "string";
+		if (resolvedType == "bool")			varDecl.type.name = "bool";
+		symbols.declare(varDecl.name, varDecl.type.name, varDecl.isMutable);
+		return;
 	}
 
 	// just call it quits if something *deeper* failed
@@ -298,49 +306,126 @@ void TypeChecker::checkVariableDeclaration(VariableDeclarationNode& varDecl)
 
 	if (resolvedType == "untypedInt")
 	{
-		 if (!validIntTypes.contains(declaredType))
-		 {
+		if (!validIntTypes.contains(declaredType))
+		{
 				errorBuffer.push_back(
 					std::format("Type mismatch between declared '{}' and resolved '{}' variable types",
-						 declaredType, resolvedType
+						declaredType, resolvedType
 				));
 				return;
-		 }
+		}
 
-		 symbols.declare(varDecl.name, varDecl.type.name, varDecl.isMutable);
+		symbols.declare(varDecl.name, varDecl.type.name, varDecl.isMutable);
 	}
 
 	else if (resolvedType == "untypedFloat")
 	{
-		 if (!validFloatTypes.contains(declaredType))
-		 {
+		if (!validFloatTypes.contains(declaredType))
+		{
 				errorBuffer.push_back(
 					std::format("Type mismatch between declared '{}' and resolved '{}' variable types",
-						 declaredType, resolvedType
+						declaredType, resolvedType
 				));
 				return;
-		 }
+		}
 
-		 symbols.declare(varDecl.name, varDecl.type.name, varDecl.isMutable);
+		symbols.declare(varDecl.name, varDecl.type.name, varDecl.isMutable);
 	}
 
 	// covers string and bools
 	else if (declaredType == resolvedType)
 	{
-		 symbols.declare(varDecl.name, varDecl.type.name, varDecl.isMutable);
+		symbols.declare(varDecl.name, varDecl.type.name, varDecl.isMutable);
 	}
 
 	else
 	{
-		 errorBuffer.push_back(
+		errorBuffer.push_back(
 				std::format(
 					"Type mismatch between declared '{}' and resolved '{}' variable types",
 					declaredType,
 					resolvedType
 				)
-		 );
-		 return;
+		);
+		return;
 	}
+}
+
+void TypeChecker::checkVariableAssignment(VariableAssignmentNode &varAssign)
+{
+	
+	std::string nameToUpdate = varAssign.name;
+
+	// It represents the declared type and if its mutable or not
+	std::optional<std::pair<std::string, bool>> varToUpdate = symbols.lookup(nameToUpdate);
+	if (!varToUpdate.has_value())
+	{
+		errorBuffer.push_back(
+			std::format(
+				"Variable '{}' is not defined in the current scope!",
+				nameToUpdate
+			)
+		);
+		return;
+	}
+
+	// If its not mutable
+	if(!varToUpdate.value().second)
+	{
+		errorBuffer.push_back(
+			std::format(
+				"Variable '{}' is not defined as mutable!",
+				nameToUpdate
+			)
+		);
+		return;
+	}
+
+	// We will get the final expr type of the new assignment
+	// and see if it matches our declared one's type
+	std::string resolvedType = resolveExprType(varAssign.value);
+	std::string expectedType = varToUpdate.value().first;
+
+	if (resolvedType == "error") return;
+
+	varAssign.type = TypeNode { .name = resolvedType };
+
+	if (resolvedType == "untypedInt")
+	{
+		if (!validIntTypes.contains(expectedType))
+		{
+				errorBuffer.push_back(
+					std::format("Type mismatch between expected '{}' and resolved '{}' variable types",
+						expectedType, resolvedType
+				));
+				return;
+		}
+	}
+
+	else if (resolvedType == "untypedFloat")
+	{
+		if (!validFloatTypes.contains(expectedType))
+		{
+				errorBuffer.push_back(
+					std::format("Type mismatch between expected '{}' and resolved '{}' variable types",
+						expectedType, resolvedType
+				));
+				return;
+		}
+	}
+
+	else if (expectedType != resolvedType)
+	{
+		errorBuffer.push_back(
+				std::format(
+					"Type mismatch between expected '{}' and resolved '{}' variable types",
+					expectedType,
+					resolvedType
+				)
+		);
+		return;
+	}
+
 }
 
 // For FunctionCallNode member of ASTNode
@@ -417,16 +502,16 @@ void TypeChecker::flushErrorBuffer()
 {
 	for (const auto& error : errorBuffer)
 	{
-		 std::println("[TypeChecker Error]: {}", error);
+		std::println("[TypeChecker Error]: {}", error);
 	}
 }
 
 std::string TypeChecker::resolveLiteralType(LiteralNode &node)
 {
 	return std::visit(Overloaded {
-		 [](UntypedInt&)	{ return "untypedInt"; },
-		 [](UntypedFloat&) { return "untypedFloat"; },
-		 [](std::string&)  { return "string"; },
-		 [](bool)			{ return "bool"; },
+		[](UntypedInt&)	{ return "untypedInt"; },
+		[](UntypedFloat&) { return "untypedFloat"; },
+		[](std::string&)  { return "string"; },
+		[](bool)			{ return "bool"; },
 	}, node.value);
 }

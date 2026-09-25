@@ -23,7 +23,7 @@ template<class... Ts> struct Overloaded : Ts... { using Ts::operator()...; };
 
 CodeGenerator::CodeGenerator(std::vector<ASTNode>& nodes)
 	: builder(context),
-	 module(std::make_unique<llvm::Module>("tantrums", context))
+	module(std::make_unique<llvm::Module>("tantrums", context))
 {
 	this->nodes = std::move(nodes);
 }
@@ -230,8 +230,8 @@ void CodeGenerator::generate(bool emitIr)
 	// We will add dynamic extern in tanstrums also <insert_peek_emoji>
 	// llvm::FunctionType *printfType = llvm::FunctionType::get
 	// (
-	//	builder.getInt32Ty(),			 // Return type: i32
-	//	{builder.getPtrTy()},			 // First arg: i8* 
+	//	builder.getInt32Ty(),			// Return type: i32
+	//	{builder.getPtrTy()},			// First arg: i8* 
 	//	true								// Is variadic: true
 	// );
 
@@ -338,7 +338,11 @@ void CodeGenerator::generateFunction(FunctionDeclarationNode& functionDeclNode)
 			// Single threaded so fine, though my reasoning can be wrong
 			[this, &function](const VariableDeclarationNode& varDecl)
 			{
-				generateVariable(varDecl, function);
+				generateVariableDeclaration(varDecl, function);
+			},
+			[this, &function](const VariableAssignmentNode& varAssignNode)
+			{
+				generateVariableAssignment(varAssignNode, function);
 			},
 
 			// }, //Functinos inside functinos! Subject unexplained removal
@@ -407,8 +411,8 @@ void CodeGenerator::generateReturn(const ReturnNode &retNode)
 		
 }
 
-void CodeGenerator::generateVariable(const VariableDeclarationNode& varDeclNode
-									, llvm::Function* function)
+void CodeGenerator::generateVariableDeclaration(const VariableDeclarationNode& varDeclNode,
+												llvm::Function* function)
 {
 	std::string type_Str = varDeclNode.type.name;
 	std::string name = varDeclNode.name;
@@ -428,7 +432,28 @@ void CodeGenerator::generateVariable(const VariableDeclarationNode& varDeclNode
 	namedValues_Variables[name] = alloca;
 	
 }
-void CodeGenerator::generatePrint(const PrintNode& printNode)
+
+void CodeGenerator::generateVariableAssignment(const VariableAssignmentNode &varAssignNode, 
+												llvm::Function *function)
+{
+	std::string name = varAssignNode.name;
+	std::string type_Str = varAssignNode.type.name;
+
+	llvm::Type* type = getLlvmType(type_Str);
+	llvm::Value* value = generateExpr(varAssignNode.value, type_Str);
+	llvm::IRBuilder<> tempBuilder(&function->getEntryBlock(), function->getEntryBlock().begin());
+	
+	llvm::AllocaInst* alloca_Stored = namedValues_Variables[name];
+
+	if (!value)
+	{
+		std::println("Error");
+		return;
+	}
+	builder.CreateStore(value, alloca_Stored);
+}
+
+void CodeGenerator::generatePrint(const PrintNode &printNode)
 {
 	if (!typeChecker) 
 	{

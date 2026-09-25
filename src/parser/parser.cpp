@@ -37,7 +37,7 @@ bool Parser::isDeclKeyword(TokenType type)
 		case TokenType::TOKEN_VOID:
 		case TokenType::TOKEN_IO:		
 		case TokenType::TOKEN_THROWS:	
-		case TokenType::TOKEN_PURE:	 
+		case TokenType::TOKEN_PURE:	
 			return true;
 		default:
 			return false;
@@ -169,8 +169,8 @@ std::optional<ASTNode> Parser::parseReturn()
 	{
 		hadError = true;
 		std::println(stderr,
-			 "[Parser Error] Return expression does not have any value at line: {}", 
-			 current().line);
+			"[Parser Error] Return expression does not have any value at line: {}", 
+			current().line);
 		return std::nullopt;
 	}
 
@@ -533,23 +533,42 @@ std::optional<ASTNode> Parser::parseVariableDeclaration()
 		});
 }
 
+std::optional<ASTNode> Parser::parseVariableAssignment()
+{
+	Token variable = current();
+	advance();
+	expect(TokenType::TOKEN_ASSIGNMENT_OPERATOR);
+	std::optional<ExprNode> expression = parseExpr();
+	if (!expression.has_value()) return std::nullopt;
+	expect(TokenType::TOKEN_SEMICOLON);
+
+	return ASTNode
+	(
+		VariableAssignmentNode
+		{
+			.name = variable.value,
+			.value = std::move(*expression)
+		}
+	);
+}
+
 LiteralNode Parser::parseLiteral(const Token& tok, bool isNegative)
 {
 	switch (tok.type)
 	{
-		 case TokenType::TOKEN_INTEGER_LITERAL:
+		case TokenType::TOKEN_INTEGER_LITERAL:
 				return LiteralNode { .value = UntypedInt { std::stoll(tok.value) }, .isNegative = isNegative };
 
-		 case TokenType::TOKEN_FLOAT_LITERAL:
+		case TokenType::TOKEN_FLOAT_LITERAL:
 				return LiteralNode { .value = UntypedFloat { std::stod(tok.value) }, .isNegative = isNegative };
 
-		 case TokenType::TOKEN_STRING_LITERAL:
+		case TokenType::TOKEN_STRING_LITERAL:
 				return LiteralNode { .value = tok.value };
 
-		 case TokenType::TOKEN_BOOL_LITERAL:
+		case TokenType::TOKEN_BOOL_LITERAL:
 				return LiteralNode { .value = tok.value == "true" };
-		 default:
-		 	break;
+		default:
+			break;
 	}
 	return LiteralNode { .value = tok.value };
 }
@@ -609,6 +628,13 @@ std::optional<ASTNode> Parser::parseStatement()
 		{
 			return parseFunctionCall();
 		}
+
+		// if there is a '=' after the identifier its a variable (re)assignment
+		else if (tokens[currentPosition + 1].type == TokenType::TOKEN_ASSIGNMENT_OPERATOR)
+		{
+			return parseVariableAssignment();
+		}
+		
 	}
 
 	else if (isDeclKeyword(token.type))

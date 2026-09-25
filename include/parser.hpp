@@ -30,6 +30,7 @@ class Parser
 		std::optional<ASTNode> parseStatement();
 		std::optional<ASTNode> parseFunctionCall();
 		std::optional<ASTNode> parseVariableDeclaration();
+		std::optional<ASTNode> parseVariableAssignment();
 		std::optional<ASTNode> parseFunctionDeclaration();
 
 		std::optional<ExprNode> parseExpr();

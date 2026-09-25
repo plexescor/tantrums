@@ -30,7 +30,8 @@ class CodeGenerator
 		void generatePrint(const PrintNode& printNode);
 		void generateFunction(FunctionDeclarationNode& functionDeclNode);
 		void generateReturn(const ReturnNode& retNode);
-		void generateVariable(const VariableDeclarationNode& varDeclNode, llvm::Function* function);
+		void generateVariableDeclaration(const VariableDeclarationNode& varDeclNode, llvm::Function* function);
+		void generateVariableAssignment(const VariableAssignmentNode& varAssignNode, llvm::Function* function);
 
 	public:
 		void setTypeChecker(TypeChecker* checker);

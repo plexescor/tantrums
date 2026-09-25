@@ -19,6 +19,7 @@ struct UntypedFloat
 
 // forward declarations
 struct VariableDeclarationNode;
+struct VariableAssignmentNode;
 struct PrintNode;
 struct FunctionDeclarationNode;
 struct FunctionCallNode;
@@ -39,6 +40,7 @@ struct UnaryExprNode;
 
 // ASTNode defined early so structs can use it
 using ASTNode = std::variant<VariableDeclarationNode, 
+							VariableAssignmentNode,
 							PrintNode, 
 							FunctionDeclarationNode, 
 							FunctionCallNode,
@@ -131,6 +133,13 @@ struct VariableDeclarationNode
 	bool isAuto;
 	std::string name;
 
+	ExprNode value;
+};
+
+struct VariableAssignmentNode
+{
+	std::string name;
+	TypeNode type;
 	ExprNode value;
 };
 

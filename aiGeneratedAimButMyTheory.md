@@ -90,8 +90,8 @@ myproject/
 		modules/
 			MyMod/
 				module.tnt		// module Maths;
-				userAdd.tnt	 // impl module Maths;
-				userSub.tnt	 // impl module Maths;
+				userAdd.tnt	// impl module Maths;
+				userSub.tnt	// impl module Maths;
 ```
 
 #### tantrum.proj
@@ -209,7 +209,7 @@ while (condition) {
 Loop control:
 
 ```tnt
-break;	 // exit loop
+break;	// exit loop
 continue;	// skip to next iteration
 ```
 
@@ -324,8 +324,8 @@ x = "hello";		// COMPILE ERROR — x is int32
 ### 6.5 Nullable Types
 
 ```tnt
-int x = 5;		 // cannot be null, compiler enforced
-int? y = null;	 // explicitly nullable
+int x = 5;		// cannot be null, compiler enforced
+int? y = null;	// explicitly nullable
 int? z = 10;		// nullable but has a value
 ```
 
@@ -346,7 +346,7 @@ io!->print(val ?? "default");	// null coalesce
 ### 6.6 Mutation
 
 ```tnt
-mut int x = 5;	 // mutable
+mut int x = 5;	// mutable
 int y = 10;		// immutable by default
 ```
 
@@ -749,7 +749,7 @@ Stdlib is written as real `.tnt` files that call libc at the bottom via `extern`
 main.tnt
   → io!->print()		// pure Tantrums
 	→ extern puts()	// one FFI call to libc
-	 → libc
+	→ libc
 		→ syscall
 ```
 

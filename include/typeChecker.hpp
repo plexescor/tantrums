@@ -16,6 +16,7 @@ class TypeChecker
 		bool check();
 		void checkFunctionDeclaration(FunctionDeclarationNode& fnDecl);
 		void checkVariableDeclaration(VariableDeclarationNode& varDecl);
+		void checkVariableAssignment(VariableAssignmentNode& varAssign);
 		void checkFunctionCall(FunctionCallNode& fnCall);
 		void checkReturnExpression(ReturnNode& retExpr, std::string_view expectedReturn);
 		void checkPrint(PrintNode& printNode);
