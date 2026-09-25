@@ -52,7 +52,16 @@ llvm::TargetMachine* CodeGenerator::getTargetMachine()
 	return targetMachine;
 }
 
-llvm::Type* CodeGenerator::getLlvmType(std::string& returnType)
+std::map<std::string, llvm::AllocaInst*>* CodeGenerator::lookupAlloca(std::string name)
+{
+    for (int i = namedValues_Variables.size() - 1; i >= 0; --i) 
+	{
+		if (namedValues_Variables[i].contains(name)) return &namedValues_Variables[i];
+	}
+	return nullptr;
+}
+
+llvm::Type *CodeGenerator::getLlvmType(std::string &returnType)
 {
 	if (returnType == "int8") return builder.getInt8Ty();
 	else if (returnType == "int16") return builder.getInt16Ty();
@@ -113,8 +122,15 @@ llvm::Value* CodeGenerator::generateExpr(const ExprNode& exprNode, const std::st
 		[this, resolvedType](const IdentifierNode& identifierNode) -> llvm::Value*
 		{
 			std::string resolved = resolvedType;
-			auto it = namedValues_Variables.find(identifierNode.name);
-			if (it == namedValues_Variables.end() || it->second == nullptr)
+			auto* allocaMap_Scoped = lookupAlloca(identifierNode.name);
+
+			if (!allocaMap_Scoped)
+			{
+				std::println(stderr, "[Codegen error] Variable '{}' not found!", identifierNode.name);
+    			return nullptr;
+			}
+			auto it = allocaMap_Scoped->find(identifierNode.name);
+			if (it == allocaMap_Scoped->end() || it->second == nullptr)
 			{
 				std::println(stderr, "[Codegen error] Variable '{}' not found or not allocated!", identifierNode.name);
 				return nullptr;
@@ -259,6 +275,7 @@ void CodeGenerator::generate(bool emitIr)
 void CodeGenerator::generateFunction(FunctionDeclarationNode& functionDeclNode)
 {
 	namedValues_Variables.clear();
+    namedValues_Variables.push_back({});
 	std::string returnType = functionDeclNode.type.name;
 	std::string name = functionDeclNode.name;
 	const std::vector<ASTNode>& body = functionDeclNode.body;
@@ -311,7 +328,8 @@ void CodeGenerator::generateFunction(FunctionDeclarationNode& functionDeclNode)
 		llvm::IRBuilder<> tempBuilder(&function->getEntryBlock(), function->getEntryBlock().begin());
 		llvm::AllocaInst* alloca = tempBuilder.CreateAlloca(arg.getType(), nullptr, param.name.name);
 		builder.CreateStore(&arg, alloca);
-		namedValues_Variables[param.name.name] = alloca;
+
+		namedValues_Variables[namedValues_Variables.size() - 1][param.name.name] = alloca;
 	}
 
 	// init printf for this function's use
@@ -384,10 +402,10 @@ llvm::Value* CodeGenerator::generateFunctionCall(FunctionCallNode &fnCall)
 	llvm::Function* function = it->second.first.first;
 	llvm::FunctionType* type = it->second.first.second;
 	std::vector<llvm::Value*> args= {};
-	for (ExprNode& arg : fnCall.arguments)
+	for (size_t i = 0; i < fnCall.arguments.size(); i++)
 	{
-		std::string resolvedType = typeChecker->resolveExprType(arg);
-		args.push_back(generateExpr(arg, resolvedType));
+		std::string resolvedType = fnCall.args_Resolved[i];
+		args.push_back(generateExpr(fnCall.arguments[i], resolvedType));
 	}
 	return builder.CreateCall(type, function, args);
 }
@@ -414,6 +432,7 @@ void CodeGenerator::generateReturn(const ReturnNode &retNode)
 void CodeGenerator::generateVariableDeclaration(const VariableDeclarationNode& varDeclNode,
 												llvm::Function* function)
 {
+	
 	std::string type_Str = varDeclNode.type.name;
 	std::string name = varDeclNode.name;
 	llvm::Type* type = getLlvmType(type_Str);
@@ -429,7 +448,7 @@ void CodeGenerator::generateVariableDeclaration(const VariableDeclarationNode& v
 		return;
 	}
 	builder.CreateStore(initialValue, alloca);
-	namedValues_Variables[name] = alloca;
+	namedValues_Variables[namedValues_Variables.size() - 1][name] = alloca;
 	
 }
 
@@ -443,8 +462,22 @@ void CodeGenerator::generateVariableAssignment(const VariableAssignmentNode &var
 	llvm::Value* value = generateExpr(varAssignNode.value, type_Str);
 	llvm::IRBuilder<> tempBuilder(&function->getEntryBlock(), function->getEntryBlock().begin());
 	
-	llvm::AllocaInst* alloca_Stored = namedValues_Variables[name];
+	auto* allocaMap_Scoped = lookupAlloca(name);
+	
+	if(!allocaMap_Scoped)
+	{
+		std::println(stderr, "[Codegen error] Variable '{}' not found!", name);
+    	return;
+	}
+	
+	auto it = allocaMap_Scoped->find(name);
+	if (it == allocaMap_Scoped->end() || it->second == nullptr)
+	{
+		std::println(stderr, "[Codegen error] Variable '{}' not found or not allocated!", name);
+		return;
+	}
 
+	llvm::AllocaInst* alloca_Stored = (*allocaMap_Scoped)[name];
 	if (!value)
 	{
 		std::println("Error");

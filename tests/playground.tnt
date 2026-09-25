@@ -1,9 +1,19 @@
+int64 scope(int64 yy)
+{
+	mut int64 test = yy;
+	test = test + test * test;
+	return test;
+}
+
 int32 main()
 {
 	mut int64 test = 10;
 	print(test + test);
 	print("\n");
 	test = test + test + 10;
+	print(test);
+	print("\n");
+	test = scope(test);
 	print(test);
 	return 0;
 }

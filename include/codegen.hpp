@@ -24,6 +24,7 @@ class CodeGenerator
 		llvm::TargetMachine* getTargetMachine();
 
 	private:
+		std::map<std::string, llvm::AllocaInst*>* lookupAlloca(std::string name);
 		llvm::Type* getLlvmType(std::string& returnType);
 		llvm::Value* generateExpr(const ExprNode& exprNode, const std::string& resolvedType);
 		llvm::Value* generateFunctionCall(FunctionCallNode& fnCall);
@@ -37,7 +38,7 @@ class CodeGenerator
 		void setTypeChecker(TypeChecker* checker);
 		
 	private:
-		std::map<std::string, llvm::AllocaInst*> namedValues_Variables;
+		std::vector<std::map<std::string, llvm::AllocaInst*>> namedValues_Variables;
 		std::map<std::string, std::pair<std::pair<llvm::Function*, llvm::FunctionType*>, std::vector<ParameterNode>>> namedValues_Functions;
 
 		TypeChecker* typeChecker = nullptr;	

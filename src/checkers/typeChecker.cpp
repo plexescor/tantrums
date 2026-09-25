@@ -11,8 +11,6 @@
 
 template<class... Ts> struct Overloaded : Ts... { using Ts::operator()...; };
 
-SymbolTable symbols;
-
 bool TypeChecker::fitsInType(int64_t value, const std::string& type)
 {
 	if (type == "int8")	return value >= INT8_MIN  && value <= INT8_MAX;
@@ -163,7 +161,8 @@ std::string TypeChecker::resolveIdentifier(const IdentifierNode& node)
 	std::string type_S = "";
 	if (!type.has_value())
 	{
-		errorBuffer.push_back(std::format("Identifier {} does not exist in the current scope!", name));
+		errorBuffer.push_back(std::format("Identifier '{}' does not exist in the current scope!", name));
+		std::println("Identifier '{}' does not exist in the current scope!", name);
 		return "error";
 		type_S = type.value().first;
 	}
@@ -456,12 +455,14 @@ void TypeChecker::checkFunctionCall(FunctionCallNode &fnCall)
 	for (size_t i = 0; i < size_Arg; i++)
 	{
 		std::string resolvedType = getFinalType_Literal(resolveExprType(fnCall.arguments[i]));
+		fnCall.args_Resolved.push_back(resolvedType);
 		std::string expectedType = returnType.value().second[i].type.name;
 		// This looks so cursed
 		if (resolvedType != expectedType)
 		{
 			errorBuffer.push_back(std::format("The argument type '{}' doesn't match the parameter type '{}'", resolvedType, expectedType));
 		}
+		
 	}
 	
 }

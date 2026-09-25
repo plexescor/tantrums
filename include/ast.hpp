@@ -118,6 +118,7 @@ struct FunctionCallNode
 {
 	std::string name;
 	std::vector<ExprNode> arguments;
+	std::vector<std::string> args_Resolved;
 };
 
 struct ReturnNode

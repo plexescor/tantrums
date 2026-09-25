@@ -33,6 +33,7 @@ class TypeChecker
 		void flushErrorBuffer();
 		std::string resolveLiteralType(LiteralNode& node);
 	private:
+		SymbolTable symbols;
 		std::vector<std::string> errorBuffer;
 		std::vector<ASTNode>& astNodes;
 		
