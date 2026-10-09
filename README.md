@@ -1,3 +1,5 @@
+## I am insanely burnt out while creating this and i wanna drop it soooo bad so I am dropping it, forgive me but this gave me more cortisol than dopamine 🙏🙏
+
 # Tantrums
 > This is my beloved child, treat it with care... 
 
